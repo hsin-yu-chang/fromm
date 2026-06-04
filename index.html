@@ -278,7 +278,7 @@ button{
   <div class="header">
     <span onclick="showChat()">‹</span>
     <div class="name">聊天室設定</div>
-    <span></span>
+    <span class="nav-placeholder"></span>
   </div>
 
   <div class="settings-content">
@@ -4802,6 +4802,21 @@ button{
     {"id":"msg6008","date":"2024-11-27","time":"05:20","sender":"김선우","text":"더비한텐 항상 다정할 수 있게 더 노력할게 항상 폭신 폭신한 사랑만 줘서 고마워 보고 많이 배울게💕","type":"group","trans":"我會更努力，讓自己能一直溫柔地對待 THE B 謝謝你總是給我柔柔軟軟的愛，我會看著你學很多💕"}
   ]
 }
+
+
+// 強制導覽按鈕滑鼠變手，避免被當成文字 I 游標
+document.querySelectorAll(".nav-btn").forEach(btn => {
+  btn.style.cursor = "pointer";
+  btn.style.userSelect = "none";
+  btn.addEventListener("mouseenter", () => {
+    btn.style.cursor = "pointer";
+    document.documentElement.style.cursor = "auto";
+  });
+  btn.addEventListener("mousemove", () => {
+    btn.style.cursor = "pointer";
+  });
+});
+
 </script>
 
 <script>
@@ -5016,6 +5031,21 @@ try{
   console.error(err);
   chat.innerHTML = `<div class="error-msg">messages.json 讀取失敗：${escapeHtml(err.message)}</div>`;
 }
+
+
+// 強制導覽按鈕滑鼠變手，避免被當成文字 I 游標
+document.querySelectorAll(".nav-btn").forEach(btn => {
+  btn.style.cursor = "pointer";
+  btn.style.userSelect = "none";
+  btn.addEventListener("mouseenter", () => {
+    btn.style.cursor = "pointer";
+    document.documentElement.style.cursor = "auto";
+  });
+  btn.addEventListener("mousemove", () => {
+    btn.style.cursor = "pointer";
+  });
+});
+
 </script>
 
 </body>
