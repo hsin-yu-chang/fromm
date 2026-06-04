@@ -11,12 +11,36 @@ body{
   font-family: system-ui, sans-serif;
 }
 .app{
+  width:100%;
   max-width:430px;
   margin:auto;
-  height:100vh;
+  height:100dvh;
   display:flex;
   flex-direction:column;
   border:1px solid #ddd;
+}
+@media (max-width:430px){
+  .app,
+  .settings-page{
+    max-width:none;
+    width:100%;
+    height:100dvh;
+    border:none;
+  }
+
+  .header{
+    padding-top:env(safe-area-inset-top);
+    height:calc(58px + env(safe-area-inset-top));
+  }
+
+  .input-area{
+    flex-shrink:0;
+    width:100%;
+    background:#111216;
+    padding:12px;
+    display:flex;
+    gap:8px;
+  }
 }
 .header{
   height:58px;
@@ -34,7 +58,8 @@ body{
 .chat{
   flex:1;
   overflow-y:auto;
-  padding:18px 14px 90px;
+  padding:18px 14px;
+  -webkit-overflow-scrolling:touch;
 }
 .msg-row{
   display:flex;
@@ -4895,7 +4920,7 @@ function addArtistMessage(item){
           ${quoteTrans ? `
             <div class="bubble-divider"></div>
             <div>${escapeHtml(quoteTrans)}</div>
-            <div class="translation-label">Translated by Papago</div>
+            <!--<div class="translation-label">Translated by Papago</div>-->
           ` : ""}
         </div>
       </div>
@@ -4941,7 +4966,7 @@ function addUserMessage(text){
   row.className = "user-row";
   row.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
   chat.appendChild(row);
-  chat.scrollTop = chat.scrollHeight;
+  chat.scrollTop = 0;
 }
 
 function sendUser(){
@@ -4970,7 +4995,7 @@ function renderMessages(data){
     data[date].forEach(item => addArtistMessage(item));
   });
 
-  chat.scrollTop = chat.scrollHeight;
+  chat.scrollTop = 0;
 }
 
 function showSettings(){
