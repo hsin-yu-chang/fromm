@@ -4,16 +4,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fromm Chat Sunwoo</title>
-<link rel="stylesheet" href="./style.css?v=7">
+<title>Fromm Mock Chat</title>
+<link rel="stylesheet" href="./style.css?v=300">
 </head>
 <body>
 
 <div class="app">
-  <div class="header">
-    <button class="nav-btn back-btn" type="button" aria-label="返回">‹</button>
-    <div class="name" id="artistName">선우</div>
-    <button class="nav-btn" type="button" aria-label="聊天室設定" onclick="showSettings()" style="cursor:pointer;user-select:none;-webkit-user-select:none;">☰</button>
+  <div class="header chat-header">
+    <div class="header-bar" id="headerNormal">
+      <button class="nav-btn back-btn" type="button" aria-label="返回">‹</button>
+      <div class="name" id="artistName">선우</div>
+
+      <div class="header-actions">
+        <button class="nav-btn search-btn" type="button" aria-label="搜尋" onclick="openSearch()">
+          <span class="icon-search" aria-hidden="true"></span>
+        </button>
+        <button class="nav-btn menu-btn" type="button" onclick="showSettings()" aria-label="聊天室設定">☰</button>
+      </div>
+    </div>
+
+    <div class="header-bar search-mode" id="headerSearch" style="display:none;">
+      <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="closeSearch()">‹</button>
+
+      <div class="header-search-box">
+        <span class="icon-search search-box-icon" aria-hidden="true"></span>
+        <input id="searchInput" class="header-search-input" type="text" placeholder="搜尋訊息">
+      </div>
+
+      <button class="nav-btn close-btn" type="button" aria-label="關閉搜尋" onclick="closeSearch()">×</button>
+    </div>
   </div>
 
 
@@ -27,15 +46,20 @@
 
 <div id="settingsPage" class="settings-page">
 
-  <div class="header">
-    <button class="nav-btn" type="button" aria-label="返回聊天室" onclick="showChat()" style="cursor:pointer;user-select:none;-webkit-user-select:none;">‹</button>
-    <div class="name">聊天室設定</div>
-    <span class="nav-placeholder"></span>
+  <div class="header settings-header">
+    <div class="header-bar">
+      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="showChat()">‹</button>
+      <div class="name">聊天室設定</div>
+      <div class="header-actions placeholder-actions">
+        <span class="nav-placeholder"></span>
+        <span class="nav-placeholder"></span>
+      </div>
+    </div>
   </div>
 
   <div class="settings-content">
 
-    <div class="setting-item">照片、影片</div>
+    <div class="setting-item" data-page="media">照片、影片</div>
     <div class="setting-item">語音訊息</div>
     <div class="setting-item">我的暱稱</div>
     <div class="setting-item">聊天室名稱</div>
@@ -50,226 +74,6 @@
 
 </div>
 
-
-<script>
-const chat = document.getElementById("chat");
-const artistName = "선우";
-const NICKNAME = "더비"; // 想把 OO 換成別的名字，改這裡
-
-function displayText(value){
-  return String(value ?? "").replaceAll("OO", NICKNAME);
-}
-
-function formatTime(time){
-  if(!time) return "";
-  const [hh, mm] = String(time).split(":");
-  let h = Number(hh);
-  if(Number.isNaN(h)) return time;
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${ampm} ${h}:${mm || "00"}`;
-}
-
-function addDateDivider(date){
-  const div = document.createElement("div");
-  div.className = "date-divider";
-  div.textContent = date;
-  chat.appendChild(div);
-}
-
-function getMediaKind(item){
-  if(!item || !item.url) return "";
-  const lower = String(item.url).toLowerCase();
-  if(lower.match(/\.(mp3|wav|m4a|ogg)(\?|$)/)) return "audio";
-  if(lower.match(/\.(mp4|webm|mov)(\?|$)/)) return "video";
-  if(item.type === "emoticon") return "emoticon";
-  return "image";
-}
-
-function getMediaHtml(item){
-  if(!item || !item.url) return "";
-  const url = escapeAttr(item.url);
-  const kind = getMediaKind(item);
-
-  if(kind === "audio"){
-    return `
-      <div class="audio-bubble" onclick="toggleAudio(this)">
-        <span class="audio-play">▶</span>
-        <span class="audio-duration">00:00</span>
-        <audio src="${url}" preload="metadata"
-          onloadedmetadata="setAudioDuration(this)"
-          onended="resetAudioButton(this)"></audio>
-      </div>
-    `;
-  }
-
-  if(kind === "video"){
-    return `<video class="chat-video" controls preload="metadata" src="${url}"></video>`;
-  }
-
-  const cls = kind === "emoticon" ? "emoticon-media" : "chat-media";
-  return `<img class="${cls}" src="${url}" loading="lazy">`;
-}
-
-function secToTime(sec){
-  if(!Number.isFinite(sec)) return "00:00";
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-
-function setAudioDuration(audio){
-  const box = audio.closest(".audio-bubble");
-  const label = box?.querySelector(".audio-duration");
-  if(label) label.textContent = secToTime(audio.duration);
-}
-
-function toggleAudio(box){
-  const audio = box.querySelector("audio");
-  const play = box.querySelector(".audio-play");
-  if(!audio) return;
-  document.querySelectorAll("audio").forEach(a => {
-    if(a !== audio){
-      a.pause();
-      const p = a.closest(".audio-bubble")?.querySelector(".audio-play");
-      if(p) p.textContent = "▶";
-    }
-  });
-  if(audio.paused){
-    audio.play();
-    if(play) play.textContent = "❚❚";
-  }else{
-    audio.pause();
-    if(play) play.textContent = "▶";
-  }
-}
-
-function resetAudioButton(audio){
-  const play = audio.closest(".audio-bubble")?.querySelector(".audio-play");
-  if(play) play.textContent = "▶";
-}
-
-function addArtistMessage(item){
-  const text = displayText(typeof item === "string" ? item : item.text);
-  const trans = displayText(typeof item === "string" ? "" : item.trans);
-  const quote = displayText(typeof item === "string" ? "" : item.quote);
-  const quoteTrans = displayText(typeof item === "string" ? "" : item.quoteTrans);
-  const mediaHtml = typeof item === "string" ? "" : getMediaHtml(item);
-  const mediaKind = typeof item === "string" ? "" : getMediaKind(item);
-  const mediaOnly = mediaHtml && ["image", "video", "emoticon"].includes(mediaKind);
-
-  const quoteHtml = quote
-    ? `
-      <div class="reply-wrap">
-        <div class="reply-line"></div>
-        <div class="quote-box">
-          <div>${escapeHtml(quote)}</div>
-          ${quoteTrans ? `
-            <div class="bubble-divider"></div>
-            <div>${escapeHtml(quoteTrans)}</div>
-            <!--<div class="translation-label">Translated by Papago</div>-->
-          ` : ""}
-        </div>
-      </div>
-    `
-    : "";
-
-  const showText = text && !(mediaHtml && /^\([^)]*\)$/.test(text));
-  const transHtml = trans && !mediaOnly
-    ? `
-      <div class="bubble-divider"></div>
-      <div>${escapeHtml(trans)}</div>
-      <div class="translation-label">Translated by Papago</div>
-    `
-    : "";
-
-  const contentHtml = mediaOnly
-    ? `<div class="media-wrap">${mediaHtml}</div>`
-    : `<div class="bubble">
-          ${showText ? `<div>${escapeHtml(text)}</div>` : ""}
-          ${mediaHtml}
-          ${transHtml}
-       </div>`;
-
-  const row = document.createElement("div");
-  row.className = "msg-row";
-  row.innerHTML = `
-    <div class="avatar"></div>
-    <div>
-
-      ${quoteHtml}
-      <div style="display:flex">
-        ${contentHtml}
-        <div class="time">${formatTime(typeof item === "string" ? "" : item.time)}</div>
-      </div>
-    </div>
-  `;
-
-  chat.appendChild(row);
-}
-
-function addUserMessage(text){
-  const row = document.createElement("div");
-  row.className = "user-row";
-  row.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
-  chat.appendChild(row);
-  chat.scrollTop = 0;
-}
-
-function sendUser(){
-  const input = document.getElementById("userInput");
-  if(!input.value.trim()) return;
-  addUserMessage(input.value.trim());
-  input.value = "";
-}
-
-function escapeHtml(str){
-  return String(str ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;");
-}
-
-function escapeAttr(str){
-  return escapeHtml(str).replaceAll('"', '&quot;');
-}
-
-function renderMessages(data){
-  chat.innerHTML = "";
-
-  Object.keys(data).forEach(date => {
-    addDateDivider(date);
-    data[date].forEach(item => addArtistMessage(item));
-  });
-
-  chat.scrollTop = 0;
-}
-
-function showSettings(){
-  document.querySelector(".app").style.display = "none";
-  document.getElementById("settingsPage").style.display = "flex";
-}
-
-function showChat(){
-  document.querySelector(".app").style.display = "flex";
-  document.getElementById("settingsPage").style.display = "none";
-}
-
-fetch("./messages.json", { cache: "no-store" })
-  .then(res => {
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  })
-  .then(messages => {
-    renderMessages(messages);
-  })
-  .catch(err => {
-    console.error(err);
-    chat.innerHTML = `<div class="error-msg">messages.json 讀取失敗：${escapeHtml(err.message)}<br>如果你是直接雙擊 HTML，請改用本機伺服器開啟。</div>`;
-  });
-
-
-</script>
-
+<script src="./script.js?v=300"></script>
 </body>
 </html>
