@@ -33,6 +33,7 @@ function formatDateLabel(date){
 function addDateDivider(date){
   const div = document.createElement("div");
   div.className = "date-divider";
+  div.dataset.date = date;
   div.textContent = formatDateLabel(date);
   chat.appendChild(div);
 }
@@ -231,7 +232,157 @@ function closeSearch(){
   renderMessages(allMessages);
 }
 
+function normalizeDateText(value){
+  return String(value || "")
+    .trim()
+    .replaceAll("年", "-")
+    .replaceAll("月", "-")
+    .replaceAll("日", "")
+    .replaceAll("/", "-")
+    .replaceAll(".", "-")
+    .replace(/\s+/g, "");
+}
+
+function parseSearchDate(keyword){
+  const raw = String(keyword || "").trim();
+  if(!raw) return null;
+
+  // 只取數字，用來支援 2023 / 202307 / 20230715 / 0715
+  const digits = raw.replace(/\D/g, "");
+
+  // 20230715
+  let m = digits.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if(m){
+    return {
+      year: m[1],
+      month: m[2],
+      day: m[3]
+    };
+  }
+
+  // 202307
+  m = digits.match(/^(\d{4})(\d{2})$/);
+  if(m){
+    return {
+      year: m[1],
+      month: m[2],
+      day: ""
+    };
+  }
+
+  // 2023
+  m = digits.match(/^(\d{4})$/);
+  if(m){
+    return {
+      year: m[1],
+      month: "",
+      day: ""
+    };
+  }
+
+  // 0715
+  m = digits.match(/^(\d{2})(\d{2})$/);
+  if(m){
+    return {
+      year: "",
+      month: m[1],
+      day: m[2]
+    };
+  }
+
+  // 把中文日期、斜線、點號、空白都轉成 -
+  const q = raw
+    .replaceAll("年", "-")
+    .replaceAll("月", "-")
+    .replaceAll("日", "")
+    .replaceAll("/", "-")
+    .replaceAll(".", "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  // 2023-07-15 / 2023 07 15 / 2023年07月15日
+  m = q.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m){
+    return {
+      year: m[1],
+      month: m[2].padStart(2, "0"),
+      day: m[3].padStart(2, "0")
+    };
+  }
+
+  // 2023-07 / 2023 07 / 2023年07月
+  m = q.match(/^(\d{4})-(\d{1,2})$/);
+  if(m){
+    return {
+      year: m[1],
+      month: m[2].padStart(2, "0"),
+      day: ""
+    };
+  }
+
+  // 07-15 / 7-15 / 07月15日
+  m = q.match(/^(\d{1,2})-(\d{1,2})$/);
+  if(m){
+    return {
+      year: "",
+      month: m[1].padStart(2, "0"),
+      day: m[2].padStart(2, "0")
+    };
+  }
+
+  return null;
+}
+
+function dateKeyMatches(dateKey, parsed){
+  const normalized = normalizeDateText(dateKey);
+  const m = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!m) return false;
+
+  const y = m[1];
+  const mo = m[2].padStart(2, "0");
+  const d = m[3].padStart(2, "0");
+
+  if(parsed.year && parsed.year !== y) return false;
+  if(parsed.month && parsed.month !== mo) return false;
+  if(parsed.day && parsed.day !== d) return false;
+
+  return true;
+}
+
+function scrollToDate(keyword){
+  const parsed = parseSearchDate(keyword);
+  if(!parsed) return false;
+
+  const matchedDates = Object.keys(allMessages)
+    .filter(date => dateKeyMatches(date, parsed))
+    .sort((a, b) => {
+      const diff = dateSortValue(a) - dateSortValue(b);
+      return diff || String(a).localeCompare(String(b));
+    });
+
+  if(!matchedDates.length) return false;
+
+  const targetDate = matchedDates[0];
+
+  renderMessages(allMessages);
+
+  requestAnimationFrame(() => {
+    const target = document.querySelector(`[data-date="${CSS.escape(targetDate)}"]`);
+
+    if(target){
+      chat.scrollTop = Math.max(0, target.offsetTop - chat.offsetTop - 12);
+    }
+  });
+
+  return true;
+}
+
 function searchMessages(keyword){
+  if(scrollToDate(keyword)){
+    return;
+  }
+
   const q = displayText(keyword).trim().toLowerCase();
 
   if(!q){
@@ -277,6 +428,7 @@ function dateSortValue(date){
   return t;
 }
 
+
 function getThumbUrl(url){
   const str = String(url || "");
 
@@ -287,11 +439,19 @@ function getThumbUrl(url){
     );
   }
 
+  return str;
+}
+
+function getVideoThumbUrl(url){
+  const str = String(url || "");
+
   if(str.includes("/video/upload/")){
-    return str.replace(
-      "/video/upload/",
-      "/video/upload/c_fill,w_240,h_240,q_auto,f_auto/"
-    );
+    return str
+      .replace(
+        "/video/upload/",
+        "/video/upload/c_fill,w_240,h_240,q_auto,f_jpg/"
+      )
+      .replace(/\.(mp4|webm|mov)(\?.*)?$/i, ".jpg");
   }
 
   return str;
@@ -309,18 +469,22 @@ function getMediaPageItemHtml(item){
       <div class="media-card audio-card"
            onclick="openMediaViewer('${rawUrl}', 'audio')">
         <div class="media-audio-icon">▶</div>
-        <div class="media-audio-text">語音訊息</div>
+        <div class="media-audio-text">&nbsp;&nbsp;語音訊息</div>
         ${time ? `<span class="media-time">${escapeHtml(time)}</span>` : ""}
       </div>
     `;
   }
 
   if(kind === "video"){
+    const videoThumbUrl = escapeAttr(getVideoThumbUrl(item.url));
+
     return `
       <div class="media-card"
            onclick="openMediaViewer('${rawUrl}', 'video')">
-        <img src="${thumbUrl}" loading="lazy" decoding="async">
-        <span class="media-badge">影片</span>
+        <img src="${videoThumbUrl}" loading="lazy" decoding="async">
+        <div class="media-play-overlay">
+          <div class="media-play-icon">▶</div>
+        </div>
         ${time ? `<span class="media-time">${escapeHtml(time)}</span>` : ""}
       </div>
     `;
