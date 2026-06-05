@@ -4,7 +4,100 @@ const DEFAULT_NICKNAME = "더비";
 let artistName = localStorage.getItem("frommChatName") || DEFAULT_ARTIST_NAME;
 let NICKNAME = localStorage.getItem("frommNickname") || DEFAULT_NICKNAME;
 const DEFAULT_THEME_COLOR = "#111216";
+const DEFAULT_THEME_MODE = "preset";
+const DEFAULT_THEME_PRESET = "black";
+const DEFAULT_CHAT_BG_IMAGE = "";
+
+const THEME_PRESETS = {
+  pink: {
+    label:"粉",
+    base:"#e88aac",
+
+    chatBg:"#fff3f7",
+    settingsBg:"#3f1f2e",
+    mediaBg:"#3f1f2e",
+
+    header:"#c9658b",
+    inputArea:"#7c4058",
+    inputBg:"#9d5571",
+
+    artistBubble:"#ffffff",
+    userBubble:"#d982a4",
+    quoteBubble:"#b95f82",
+
+    audioBg:"#e88aac",
+    mediaCard:"#f3a8c0",
+    accent:"#f7bfd1"
+  },
+
+  blue: {
+    label:"藍",
+    base:"#6f9fe8",
+
+    chatBg:"#eef6ff",
+    settingsBg:"#17263f",
+    mediaBg:"#17263f",
+
+    header:"#3f659d",
+    inputArea:"#263d61",
+    inputBg:"#395985",
+
+    artistBubble:"#ffffff",
+    userBubble:"#6b91d2",
+    quoteBubble:"#5277b2",
+
+    audioBg:"#78a8ee",
+    mediaCard:"#8db8f5",
+    accent:"#b9d4ff"
+  },
+
+  purple: {
+    label:"紫",
+    base:"#9a7be8",
+
+    chatBg:"#f6f1ff",
+    settingsBg:"#241b3f",
+    mediaBg:"#241b3f",
+
+    header:"#6650a8",
+    inputArea:"#40326d",
+    inputBg:"#5b4890",
+
+    artistBubble:"#ffffff",
+    userBubble:"#8e78cf",
+    quoteBubble:"#725eb4",
+
+    audioBg:"#9a7be8",
+    mediaCard:"#b29af0",
+    accent:"#d6c9ff"
+  },
+
+  black: {
+    label:"黑",
+    base:"#111216",
+
+    chatBg:"#ffffff",
+    settingsBg:"#111216",
+    mediaBg:"#111216",
+
+    header:"#17181c",
+    inputArea:"#111216",
+    inputBg:"#333741",
+
+    artistBubble:"#f1f1f3",
+    userBubble:"#2b2d35",
+    quoteBubble:"#24262d",
+
+    audioBg:"#24262d",
+    mediaCard:"#24262d",
+    accent:"#8f9199"
+  }
+};
+
+let themeMode = localStorage.getItem("frommThemeMode") || DEFAULT_THEME_MODE;
+let themePreset = localStorage.getItem("frommThemePreset") || DEFAULT_THEME_PRESET;
 let themeColor = localStorage.getItem("frommThemeColor") || DEFAULT_THEME_COLOR;
+let chatBgImage = localStorage.getItem("frommChatBgImage") || DEFAULT_CHAT_BG_IMAGE;
 let allMessages = {};
 let currentMediaTab = "media";
 
@@ -42,22 +135,60 @@ function mixColor(hex, amount){
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+function getThemePalette(){
+  const preset = THEME_PRESETS[themePreset] || THEME_PRESETS[DEFAULT_THEME_PRESET];
+
+  if(themeMode === "custom"){
+    const color = normalizeHexColor(themeColor) || DEFAULT_THEME_COLOR;
+    themeColor = color;
+
+    return {
+      label:"自訂",
+      base:color,
+      chatBg:mixColor(color, 238),
+      settingsBg:mixColor(color, -42),
+      mediaBg:mixColor(color, -42),
+      header:mixColor(color, 8),
+      inputArea:mixColor(color, -18),
+      inputBg:mixColor(color, 22),
+      artistBubble:"#ffffff",
+      userBubble:mixColor(color, 34),
+      quoteBubble:mixColor(color, 18),
+      audioBg:color,
+      mediaCard:mixColor(color, 24),
+      accent:mixColor(color, 72),
+      chatBgImage:chatBgImage
+    };
+  }
+
+  return {
+    ...preset,
+    chatBgImage:""
+  };
+}
+
 function applyThemeColor(){
-  const color = normalizeHexColor(themeColor) || DEFAULT_THEME_COLOR;
-  themeColor = color;
+  const palette = getThemePalette();
 
-  // 不把主題色套到整個 body / header / 媒體列表，避免整頁外框變色
+  // 外框固定深色，避免整個瀏覽器背景變主題色
   document.documentElement.style.setProperty("--theme-bg", "#111216");
-  document.documentElement.style.setProperty("--theme-panel", "#17181c");
+  document.documentElement.style.setProperty("--theme-settings-bg", palette.settingsBg || "#111216");
+  document.documentElement.style.setProperty("--theme-media-bg", palette.mediaBg || palette.settingsBg || "#111216");
 
-  // 聊天泡泡、引用框、語音縮圖可跟主題色微調
-  document.documentElement.style.setProperty("--theme-card", mixColor(color, 24));
+  document.documentElement.style.setProperty("--theme-panel", palette.header);
+  document.documentElement.style.setProperty("--theme-input-area-bg", palette.inputArea);
+  document.documentElement.style.setProperty("--theme-input-bg", palette.inputBg);
+  document.documentElement.style.setProperty("--theme-card", palette.userBubble);
+  document.documentElement.style.setProperty("--theme-quote", palette.quoteBubble);
+  document.documentElement.style.setProperty("--theme-bubble-bg", palette.artistBubble);
+  document.documentElement.style.setProperty("--theme-chat-bg", palette.chatBg);
+  document.documentElement.style.setProperty("--theme-audio-bg", palette.audioBg);
+  document.documentElement.style.setProperty("--theme-media-card", palette.mediaCard);
+  document.documentElement.style.setProperty("--theme-accent", palette.accent);
 
-  // 聊天室內容背景使用很淡的主題色
-  document.documentElement.style.setProperty("--theme-chat-bg", mixColor(color, 238));
-
-  // 只有語音點開的大頁面使用主題主色
-  document.documentElement.style.setProperty("--theme-audio-bg", color);
+  const image = String(palette.chatBgImage || "").trim();
+  const cssImage = image ? `url("${image.replaceAll('"', '\"')}")` : "none";
+  document.documentElement.style.setProperty("--chat-bg-image", cssImage);
 }
 
 function displayText(value){
@@ -668,7 +799,7 @@ function renderMediaPage(tab = currentMediaTab){
 
 function normalizePage(page){
   const value = String(page || "chat").replace("#", "").trim();
-  return ["chat", "settings", "media", "edit-nickname", "edit-chat-name", "edit-theme-color"].includes(value) ? value : "chat";
+  return ["chat", "settings", "media", "edit-nickname", "edit-chat-name", "edit-theme-color", "edit-theme-image", "theme-settings", "theme-custom", "theme-presets"].includes(value) ? value : "chat";
 }
 
 function setPage(page){
@@ -686,11 +817,17 @@ function showPage(page){
   const settingsPage = document.getElementById("settingsPage");
   const mediaPage = document.getElementById("mediaPage");
   const settingsEditPage = document.getElementById("settingsEditPage");
+  const themeSettingsPage = document.getElementById("themeSettingsPage");
+  const themeCustomPage = document.getElementById("themeCustomPage");
+  const themePresetPage = document.getElementById("themePresetPage");
 
   if(app) app.style.display = "none";
   if(settingsPage) settingsPage.style.display = "none";
   if(mediaPage) mediaPage.style.display = "none";
   if(settingsEditPage) settingsEditPage.style.display = "none";
+  if(themeSettingsPage) themeSettingsPage.style.display = "none";
+  if(themeCustomPage) themeCustomPage.style.display = "none";
+  if(themePresetPage) themePresetPage.style.display = "none";
 
   if(nextPage === "settings"){
     renderSettingsItems();
@@ -705,7 +842,28 @@ function showPage(page){
     return;
   }
 
-  if(nextPage === "edit-nickname" || nextPage === "edit-chat-name" || nextPage === "edit-theme-color"){
+  if(nextPage === "theme-settings"){
+    const pageEl = ensureThemeSettingsPage();
+    pageEl.style.display = "flex";
+    renderThemeSettingsPage();
+    return;
+  }
+
+  if(nextPage === "theme-custom"){
+    const pageEl = ensureThemeCustomPage();
+    pageEl.style.display = "flex";
+    renderThemeCustomPage();
+    return;
+  }
+
+  if(nextPage === "theme-presets"){
+    const pageEl = ensureThemePresetPage();
+    pageEl.style.display = "flex";
+    renderThemePresetPage();
+    return;
+  }
+
+  if(nextPage === "edit-nickname" || nextPage === "edit-chat-name" || nextPage === "edit-theme-color" || nextPage === "edit-theme-image"){
     const pageEl = ensureSettingsEditPage();
     pageEl.style.display = "flex";
     renderSettingsEditPage(nextPage);
@@ -742,7 +900,8 @@ function ensureMediaViewer(){
 
   viewer.innerHTML = `
     <div class="media-viewer-header">
-      <button class="viewer-btn" type="button" onclick="closeMediaViewer()">✕</button>
+      <button class="viewer-btn viewer-back-btn" type="button" onclick="closeMediaViewer()">‹</button>
+      <div class="media-viewer-title" id="mediaViewerTitle"></div>
       <a id="mediaDownloadBtn" class="viewer-download" href="#" download target="_blank">下載</a>
     </div>
 
@@ -754,21 +913,31 @@ function ensureMediaViewer(){
 }
 
 function openMediaViewer(url, type, time = ""){
-  ensureMediaViewer();
-
-  const viewer = document.getElementById("mediaViewer");
+  const viewer = ensureMediaViewer();
   const viewerBody = document.getElementById("mediaViewerBody");
+  const titleEl = document.getElementById("mediaViewerTitle");
+  const downloadBtn = document.getElementById("mediaDownloadBtn");
 
   viewer.dataset.type = type;
   viewer.style.display = "flex";
+  viewer.classList.toggle("audio-viewer-mode", type === "audio");
+
+  if(downloadBtn){
+    downloadBtn.href = url;
+    downloadBtn.style.display = type === "audio" ? "none" : "block";
+  }
+
+  if(titleEl){
+    titleEl.textContent = type === "audio" ? "" : "";
+  }
 
   if(type === "audio"){
-    viewer.classList.add("audio-viewer-mode");
-
     viewerBody.innerHTML = `
       <div class="audio-viewer-page">
-        <div class="audio-viewer-avatar"></div>
-        <div class="audio-viewer-name">${escapeHtml(artistName)}</div>
+        <div class="audio-viewer-center">
+          <div class="audio-viewer-avatar"></div>
+          <div class="audio-viewer-name">${escapeHtml(artistName)}</div>
+        </div>
 
         <div class="audio-viewer-player">
           <audio controls autoplay preload="metadata" src="${escapeAttr(url)}"></audio>
@@ -778,18 +947,16 @@ function openMediaViewer(url, type, time = ""){
     return;
   }
 
-  viewer.classList.remove("audio-viewer-mode");
-
   if(type === "image"){
     viewerBody.innerHTML = `
-      <img class="media-viewer-image" src="${escapeAttr(url)}">
+      <img class="viewer-media" src="${escapeAttr(url)}">
     `;
     return;
   }
 
   if(type === "video"){
     viewerBody.innerHTML = `
-      <video class="media-viewer-video" controls autoplay preload="metadata" src="${escapeAttr(url)}"></video>
+      <video class="viewer-media" controls autoplay preload="metadata" src="${escapeAttr(url)}"></video>
     `;
     return;
   }
@@ -799,10 +966,198 @@ function closeMediaViewer(){
   const body = document.getElementById("mediaViewerBody");
 
   if(body) body.innerHTML = "";
-  if(viewer) viewer.style.display = "none";
+  if(viewer){
+    viewer.style.display = "none";
+    viewer.classList.remove("audio-viewer-mode");
+    delete viewer.dataset.type;
+  }
 }
 
 
+
+
+function ensureThemeSettingsPage(){
+  let page = document.getElementById("themeSettingsPage");
+  if(page) return page;
+
+  page = document.createElement("div");
+  page.id = "themeSettingsPage";
+  page.className = "settings-page theme-settings-page";
+  page.innerHTML = `
+    <div class="header settings-header">
+      <div class="header-bar">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">‹</button>
+        <div class="name">聊天室主題</div>
+        <div class="header-actions placeholder-actions">
+          <span class="nav-placeholder"></span>
+          <span class="nav-placeholder"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-content theme-settings-content" id="themeSettingsContent"></div>
+  `;
+
+  document.body.appendChild(page);
+  return page;
+}
+
+function ensureThemeCustomPage(){
+  let page = document.getElementById("themeCustomPage");
+  if(page) return page;
+
+  page = document.createElement("div");
+  page.id = "themeCustomPage";
+  page.className = "settings-page theme-settings-page";
+  page.innerHTML = `
+    <div class="header settings-header">
+      <div class="header-bar">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室主題" onclick="setPage('theme-settings')">‹</button>
+        <div class="name">自訂背景</div>
+        <div class="header-actions placeholder-actions">
+          <span class="nav-placeholder"></span>
+          <span class="nav-placeholder"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-content theme-settings-content" id="themeCustomContent"></div>
+  `;
+
+  document.body.appendChild(page);
+  return page;
+}
+
+function ensureThemePresetPage(){
+  let page = document.getElementById("themePresetPage");
+  if(page) return page;
+
+  page = document.createElement("div");
+  page.id = "themePresetPage";
+  page.className = "settings-page theme-settings-page";
+  page.innerHTML = `
+    <div class="header settings-header">
+      <div class="header-bar">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室主題" onclick="setPage('theme-settings')">‹</button>
+        <div class="name">預設主題</div>
+        <div class="header-actions placeholder-actions">
+          <span class="nav-placeholder"></span>
+          <span class="nav-placeholder"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-content theme-settings-content" id="themePresetContent"></div>
+  `;
+
+  document.body.appendChild(page);
+  return page;
+}
+
+function getThemeName(){
+  if(themeMode === "custom") return "自訂背景";
+  const preset = THEME_PRESETS[themePreset] || THEME_PRESETS.black;
+  return `預設主題：${preset.label}`;
+}
+
+function renderThemeSettingsPage(){
+  const content = document.getElementById("themeSettingsContent");
+  if(!content) return;
+
+  content.innerHTML = `
+    <div class="setting-item" role="button" tabindex="0" data-page="theme-custom">
+      <div class="setting-main">
+        <div class="setting-title">自訂背景</div>
+        <div class="setting-value">${themeMode === "custom" ? "使用中" : "設定背景顏色／圖片"}</div>
+      </div>
+      <div class="setting-arrow" aria-hidden="true">›</div>
+    </div>
+
+    <div class="setting-item" role="button" tabindex="0" data-page="theme-presets">
+      <div class="setting-main">
+        <div class="setting-title">預設主題</div>
+        <div class="setting-value">${escapeHtml(getThemeName())}</div>
+      </div>
+      <div class="setting-arrow" aria-hidden="true">›</div>
+    </div>
+  `;
+}
+
+function renderThemeCustomPage(){
+  const content = document.getElementById("themeCustomContent");
+  if(!content) return;
+
+  content.innerHTML = `
+    <div class="setting-item" role="button" tabindex="0" data-action="edit-theme-color">
+      <div class="theme-swatch custom" style="background:${escapeAttr(themeColor)}"></div>
+      <div class="setting-main">
+        <div class="setting-title">背景顏色</div>
+        <div class="setting-value">${escapeHtml(themeColor)}</div>
+      </div>
+      <div class="setting-arrow" aria-hidden="true">›</div>
+    </div>
+
+    <div class="setting-item" role="button" tabindex="0" data-action="edit-theme-image">
+      <div class="theme-swatch custom image-swatch"></div>
+      <div class="setting-main">
+        <div class="setting-title">背景圖片</div>
+        <div class="setting-value">${chatBgImage ? escapeHtml(chatBgImage) : "未設定"}</div>
+      </div>
+      <div class="setting-arrow" aria-hidden="true">›</div>
+    </div>
+  `;
+}
+
+function renderThemePresetPage(){
+  const content = document.getElementById("themePresetContent");
+  if(!content) return;
+
+  const presetKeys = ["pink", "blue", "purple", "black"];
+
+  content.innerHTML = presetKeys.map(key => {
+    const preset = THEME_PRESETS[key];
+    const active = themeMode === "preset" && themePreset === key;
+
+    return `
+      <div class="setting-item theme-preset-item ${active ? "active" : ""}" role="button" tabindex="0" data-theme-preset="${escapeAttr(key)}">
+        <div class="theme-swatch" style="background:${escapeAttr(preset.base)}"></div>
+        <div class="setting-main">
+          <div class="setting-title">${escapeHtml(preset.label)}</div>
+          <div class="setting-value">${active ? "使用中" : "套用預設主題"}</div>
+        </div>
+        <div class="setting-arrow" aria-hidden="true">${active ? "✓" : "›"}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function applyPresetTheme(key){
+  if(!THEME_PRESETS[key]) return;
+
+  themeMode = "preset";
+  themePreset = key;
+  themeColor = THEME_PRESETS[key].base;
+  chatBgImage = "";
+
+  localStorage.setItem("frommThemeMode", themeMode);
+  localStorage.setItem("frommThemePreset", themePreset);
+  localStorage.setItem("frommThemeColor", themeColor);
+  localStorage.removeItem("frommChatBgImage");
+
+  applyThemeColor();
+  renderThemeSettingsPage();
+  renderThemePresetPage();
+  updateSettingsLabels();
+  renderMessages(allMessages);
+}
+
+function backFromSettingsEdit(){
+  if(currentSettingsEditType === "edit-theme-color" || currentSettingsEditType === "edit-theme-image"){
+    setPage("theme-custom");
+    return;
+  }
+  showSettings();
+}
 
 const SETTINGS_EDIT_CONFIG = {
   "edit-nickname": {
@@ -827,17 +1182,43 @@ const SETTINGS_EDIT_CONFIG = {
     }
   },
   "edit-theme-color": {
-    title:"編輯聊天室背景。",
-    label:"主題色",
+    title:"自訂背景顏色。",
+    label:"背景色",
     max:7,
     get:() => themeColor,
     set:value => {
       const color = normalizeHexColor(value);
       if(!color) return false;
 
+      themeMode = "custom";
       themeColor = color;
+      localStorage.setItem("frommThemeMode", themeMode);
       localStorage.setItem("frommThemeColor", themeColor);
       applyThemeColor();
+      renderMessages(allMessages);
+      return true;
+    }
+  },
+  "edit-theme-image": {
+    title:"自訂背景圖片。",
+    label:"圖片路徑",
+    max:200,
+    get:() => chatBgImage,
+    set:value => {
+      const path = String(value || "").trim();
+
+      themeMode = "custom";
+      chatBgImage = path;
+      localStorage.setItem("frommThemeMode", themeMode);
+
+      if(path){
+        localStorage.setItem("frommChatBgImage", chatBgImage);
+      }else{
+        localStorage.removeItem("frommChatBgImage");
+      }
+
+      applyThemeColor();
+      renderMessages(allMessages);
       return true;
     }
   }
@@ -854,7 +1235,7 @@ function ensureSettingsEditPage(){
   page.className = "settings-page settings-edit-page";
   page.innerHTML = `
     <div class="header settings-edit-header">
-      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">‹</button>
+      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="backFromSettingsEdit()">‹</button>
       <button class="settings-save-btn" id="settingsEditSaveBtn" type="button" onclick="saveSettingsEdit()">儲存</button>
     </div>
 
@@ -918,10 +1299,11 @@ function updateSettingsEditState(){
   const value = rawValue.trim();
   const len = [...rawValue].length;
   const hasValue = value.length > 0;
+  const allowEmpty = currentSettingsEditType === "edit-theme-image";
 
   count.textContent = `${len}/${config.max}`;
-  saveBtn.disabled = !hasValue;
-  saveBtn.classList.toggle("active", hasValue);
+  saveBtn.disabled = !hasValue && !allowEmpty;
+  saveBtn.classList.toggle("active", hasValue || allowEmpty);
   if(clearBtn) clearBtn.style.visibility = rawValue ? "visible" : "hidden";
 }
 
@@ -939,12 +1321,16 @@ function saveSettingsEdit(){
   if(!config || !input) return;
 
   const value = input.value.trim();
-  if(!value) return;
+  if(!value && currentSettingsEditType !== "edit-theme-image") return;
 
   const saved = config.set(value);
   if(saved === false) return;
 
   updateSettingsLabels();
+  if(currentSettingsEditType === "edit-theme-color" || currentSettingsEditType === "edit-theme-image"){
+    setPage("theme-custom");
+    return;
+  }
   setPage("settings");
 }
 
@@ -953,7 +1339,7 @@ const SETTINGS_ITEMS = [
   { title:"語音訊息", value:"", page:"media", tab:"audio" },
   { title:"我的暱稱", value:() => NICKNAME, action:"edit-nickname" },
   { title:"聊天室名稱", value:() => artistName, action:"edit-chat-name" },
-  { title:"聊天室背景設定", value:() => themeColor, action:"edit-theme-color" },
+  { title:"聊天室主題", value:getThemeName, page:"theme-settings" },
 
 ];
 
@@ -999,6 +1385,10 @@ function editThemeColor(){
   setPage("edit-theme-color");
 }
 
+function editThemeImage(){
+  setPage("edit-theme-image");
+}
+
 document.addEventListener("click", e => {
   const mediaTabBtn = e.target.closest("[data-media-tab]");
   if(mediaTabBtn){
@@ -1010,6 +1400,21 @@ document.addEventListener("click", e => {
   const mediaItem = e.target.closest('[data-page="media"]');
   if(mediaItem){
     showMediaPage(mediaItem.dataset.tab || "media");
+    return;
+  }
+
+  const pageItem = e.target.closest("[data-page]");
+  if(pageItem){
+    const page = pageItem.dataset.page;
+    if(page && page !== "media"){
+      setPage(page);
+      return;
+    }
+  }
+
+  const presetItem = e.target.closest('[data-theme-preset]');
+  if(presetItem){
+    applyPresetTheme(presetItem.dataset.themePreset);
     return;
   }
 
@@ -1028,6 +1433,11 @@ document.addEventListener("click", e => {
 
   if(action === "edit-theme-color"){
     editThemeColor();
+    return;
+  }
+
+  if(action === "edit-theme-image"){
+    editThemeImage();
     return;
   }
 });

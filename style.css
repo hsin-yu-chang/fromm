@@ -26,6 +26,15 @@
 
 }
 
+:root{
+  --theme-bg:#111216;
+  --theme-panel:#17181c;
+  --theme-card:#24262d;
+  --theme-chat-bg:#ffffff;
+  --theme-audio-bg:#e88aac;
+  --avatar-image:url("./icons/20240820_093207_inSave_5.jpg");
+}
+
 *{box-sizing:border-box}
 
 html,
@@ -50,7 +59,7 @@ body{
   display:flex;
   flex-direction:column;
   border:1px solid #ddd;
-  background:white;
+  background:var(--theme-chat-bg);
   overflow:hidden;
 }
 
@@ -78,6 +87,7 @@ body{
   overscroll-behavior:contain;
   padding:18px 14px;
   -webkit-overflow-scrolling:touch;
+  background:var(--theme-chat-bg);
 }
 
 .msg-row{
@@ -92,7 +102,10 @@ body{
   width:42px;
   height:42px;
   border-radius:50%;
-  background:#2b2d35;
+  background-image:var(--avatar-image);
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
   flex-shrink:0;
 }
 
@@ -146,13 +159,13 @@ word-break:break-word;
 
 .reply-line{
   width:4px;
-  background:#24262d;
+  background:var(--theme-card);
   border-radius:10px;
   margin-right:10px;
 }
 
 .quote-box{
-  background:#24262d;
+  background:var(--theme-card);
   color:#d6d6d6;
   border-radius:20px;
   padding:12px 14px;
@@ -190,7 +203,7 @@ word-break:break-word;
 }
 
 .user-bubble{
-  background:#2b2d35;
+  background:var(--theme-card);
   color:white;
   border-radius:18px 0 18px 18px;
   padding:13px 16px;
@@ -202,7 +215,7 @@ word-break:break-word;
 .input-area{
   flex-shrink:0;
   width:100%;
-  background:#111216;
+  background:var(--theme-bg);
   padding:12px;
   display:flex;
   gap:8px;
@@ -217,7 +230,7 @@ input{
   outline:none;
   border-radius:24px;
   padding:13px 16px;
-  background:#333741;
+  background:var(--theme-card);
   color:white;
   font-size:15px;
 }
@@ -229,6 +242,7 @@ button{
   padding:0 16px;
   background:#eee;
   font-weight:bold;
+  font-family:"kr", "cn", system-ui, sans-serif;
 }
 
 .settings-page{
@@ -755,7 +769,7 @@ input{
   position:relative;
   overflow:hidden;
   border-radius:10px;
-  background:#24262d;
+  background:var(--theme-card);
   aspect-ratio:1 / 1;
   min-width:0;
   max-width:100%;
@@ -767,7 +781,7 @@ input{
   height:100%;
   display:block;
   object-fit:cover;
-  background:#24262d;
+  background:var(--theme-card);
 }
 
 .media-card.audio-card{
@@ -961,7 +975,35 @@ input{
 .fake-scrollbar.dragging .fake-scrollbar-thumb{
   background:rgba(120,120,120,.95);
 }
-/* ===== audio thumbnail card ===== */
+/* ===== media tabs: 照片影片 / 語音訊息 ===== */
+.media-tabs{
+  flex-shrink:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  height:58px;
+  background:#111216;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.media-tab{
+  all:unset;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#777b84;
+  font-size:24px;
+  line-height:1;
+  font-family:"kr", "cn", system-ui, sans-serif;
+  cursor:pointer;
+  user-select:none;
+}
+
+.media-tab.active{
+  color:#d9dbe0;
+  font-weight:700;
+}
+
 .media-grid-audio{
   display:grid;
   grid-template-columns:repeat(3, minmax(0, 1fr));
@@ -972,11 +1014,57 @@ input{
   width:100%;
 }
 
+/* ===== audio thumbnail cards ===== */
+.audio-thumb-card{
+  position:relative;
+  aspect-ratio:1 / 1;
+  border-radius:10px;
+  background:var(--theme-card);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.audio-thumb-avatar{
+  position:absolute;
+  top:20%;
+  left:50%;
+  transform:translateX(-50%);
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  background-image:var(--avatar-image);
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
+
+.audio-thumb-play{
+  position:absolute;
+  left:50%;
+  top:58%;
+  transform:translate(-50%, -50%);
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:rgba(0,0,0,.28);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  line-height:1;
+  padding-left:3px;
+  box-shadow:0 2px 10px rgba(0,0,0,.22);
+}
+/* ===== audio thumbnail card ===== */
 .audio-thumb-card{
   position:relative;
   aspect-ratio:1 / 1;
   border-radius:14px;
-  background:var(--theme-audio-bg);
+  background:var(--theme-card);
   overflow:hidden;
   display:flex;
   align-items:center;
@@ -1029,78 +1117,636 @@ input{
   backdrop-filter:blur(4px);
 }
 
-/* ===== audio viewer full page ===== */
+/* ===== FINAL FIX: audio card + theme scope ===== */
+html,
+body{
+  background:#0f1014 !important;
+}
+
+.header,
+.media-viewer-header{
+  background:#17181c !important;
+}
+
+.settings-page,
+.settings-edit-page,
+.media-page,
+.media-tabs{
+  background:#111216 !important;
+}
+
+.app,
+.chat{
+  background:var(--theme-chat-bg) !important;
+}
+
+/* tabs 不要變成白色膠囊 */
+.media-tabs{
+  flex-shrink:0 !important;
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  height:58px !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+}
+
+.media-tab{
+  all:unset !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  color:#777b84 !important;
+  font-size:24px !important;
+  line-height:1 !important;
+  font-family:"kr", "cn", system-ui, sans-serif !important;
+  cursor:pointer !important;
+  user-select:none !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+.media-tab.active{
+  color:#d9dbe0 !important;
+  font-weight:700 !important;
+}
+
+/* 語音頁一定是三欄正方形，不要回到橫條 */
+.media-grid-audio{
+  width:100% !important;
+  max-width:100% !important;
+  display:grid !important;
+  grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+  gap:6px !important;
+}
+
+.media-grid-audio .audio-thumb-card,
+.media-grid-audio .media-card.audio-thumb-card{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  aspect-ratio:1 / 1 !important;
+  border-radius:14px !important;
+  background:var(--theme-audio-bg) !important;
+  overflow:hidden !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:0 !important;
+}
+
+.audio-thumb-avatar{
+  position:absolute !important;
+  top:18% !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:64px !important;
+  height:64px !important;
+  border-radius:50% !important;
+  background-image:var(--avatar-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.22) !important;
+}
+
+.audio-thumb-name{
+  position:absolute !important;
+  top:58% !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  color:#fff !important;
+  font-size:16px !important;
+  font-weight:700 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.2) !important;
+  white-space:nowrap !important;
+}
+
+.audio-thumb-play{
+  position:absolute !important;
+  bottom:16% !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:42px !important;
+  height:42px !important;
+  border-radius:50% !important;
+  background:rgba(255,255,255,.22) !important;
+  color:white !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:20px !important;
+  line-height:1 !important;
+  padding-left:3px !important;
+  box-shadow:0 2px 10px rgba(0,0,0,.22) !important;
+  backdrop-filter:blur(4px) !important;
+}
+
+/* 語音點開才吃主題色 */
 .media-viewer.audio-viewer-mode{
-  background:var(--theme-audio-bg);
-  border-left:1px solid rgba(255,255,255,.22);
-  border-right:1px solid rgba(255,255,255,.22);
+  background:var(--theme-audio-bg) !important;
+  border-left:1px solid rgba(255,255,255,.18) !important;
+  border-right:1px solid rgba(255,255,255,.18) !important;
 }
 
 .audio-viewer-mode .media-viewer-header{
-  background:transparent;
-  color:white;
-  border-bottom:0;
+  background:transparent !important;
 }
 
 .audio-viewer-mode .media-viewer-body{
-  padding:0;
-  align-items:stretch;
-  justify-content:stretch;
+  padding:0 !important;
+  background:var(--theme-audio-bg) !important;
 }
 
 .audio-viewer-page{
-  min-height:100%;
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  background:var(--theme-audio-bg);
-  padding:40px 24px 80px;
-  box-sizing:border-box;
+  min-height:100% !important;
+  width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:var(--theme-audio-bg) !important;
+  padding:40px 24px 80px !important;
+  box-sizing:border-box !important;
 }
 
 .audio-viewer-center{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  flex:1;
-  width:100%;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  transform:translateY(-28px) !important;
 }
 
 .audio-viewer-avatar{
-  width:180px;
-  height:180px;
-  border-radius:50%;
-  background-image:var(--avatar-image);
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  box-shadow:0 10px 30px rgba(0,0,0,.18);
-  margin-bottom:20px;
+  width:180px !important;
+  height:180px !important;
+  border-radius:50% !important;
+  background-image:var(--avatar-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.18) !important;
+  margin-bottom:22px !important;
 }
 
 .audio-viewer-name{
-  color:white;
-  font-size:30px;
-  font-weight:700;
-  margin-bottom:36px;
-  font-family:"kr", "cn", system-ui, sans-serif;
+  color:white !important;
+  font-size:30px !important;
+  font-weight:700 !important;
+  font-family:"kr", "cn", system-ui, sans-serif !important;
 }
 
 .audio-viewer-player{
-  width:min(360px, 86vw);
-  margin-bottom:24px;
+  width:min(360px, 86vw) !important;
+  position:absolute !important;
+  left:50% !important;
+  bottom:28px !important;
+  transform:translateX(-50%) !important;
 }
 
 .audio-viewer-player audio{
-  width:100%;
+  width:100% !important;
 }
 
-.media-viewer-image,
-.media-viewer-video{
-  max-width:100%;
-  max-height:100%;
-  object-fit:contain;
+/* ===== THEME SETTINGS PAGE + CHAT THEME FINAL ===== */
+:root{
+  --theme-bg:#111216;
+  --theme-settings-bg:#111216;
+  --theme-panel:#17181c;
+  --theme-input-area-bg:#111216;
+  --theme-input-bg:#333741;
+  --theme-card:#2b2d35;
+  --theme-quote:#24262d;
+  --theme-bubble-bg:#f1f1f3;
+  --theme-chat-bg:#ffffff;
+  --theme-audio-bg:#24262d;
+  --theme-media-card:#24262d;
+  --theme-accent:#8f9199;
+  --chat-bg-image:none;
+  --avatar-image:url("./icons/20240820_093207_inSave_5.jpg");
+}
+
+html,
+body{
+  background:#0f1014 !important;
+}
+
+.app{
+  background:var(--theme-chat-bg) !important;
+}
+
+.chat{
+  background:var(--theme-chat-bg) !important;
+}
+
+.header,
+.media-viewer-header{
+  background:var(--theme-panel) !important;
+}
+
+.input-area{
+  background:var(--theme-input-area-bg) !important;
+}
+
+input,
+.header-search-box{
+  background:var(--theme-input-bg) !important;
+}
+
+.bubble{
+  background:var(--theme-bubble-bg) !important;
+}
+
+.user-bubble,
+.quote-box,
+.reply-line{
+  background:var(--theme-card) !important;
+}
+
+.settings-page,
+.settings-edit-page,
+.theme-settings-page,
+.media-page,
+.media-tabs{
+  background:var(--theme-settings-bg) !important;
+}
+
+.media-card{
+  background:var(--theme-media-card) !important;
+}
+
+.media-card img,
+.media-card video{
+  background:var(--theme-media-card) !important;
+}
+
+.avatar{
+  background-image:var(--avatar-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+}
+
+/* 聊天室主題頁：像聊天室設定一樣 */
+.theme-settings-content{
+  padding:30px 24px !important;
+}
+
+.theme-section-title{
+  color:#8f949d;
+  font-size:18px;
+  line-height:1;
+  padding:30px 0 10px;
+  font-family:"kr", "cn", system-ui, sans-serif;
+}
+
+.theme-settings-content{
+  padding:30px 24px !important;
+}
+
+/* 聊天室主題第一層：自訂背景 / 預設主題，沒有色票 */
+#themeSettingsContent .setting-item{
+  min-height:92px !important;
+  padding:18px 0 !important;
+  display:grid !important;
+  grid-template-columns:minmax(0, 1fr) 34px !important;
+  align-items:center !important;
+  column-gap:18px !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+  cursor:pointer !important;
+}
+
+#themeSettingsContent .setting-main{
+  grid-column:1 !important;
+}
+
+/* 自訂背景頁 / 預設主題頁：有色票，所以三欄 */
+#themeCustomContent .setting-item,
+#themePresetContent .setting-item{
+  min-height:92px !important;
+  padding:18px 0 !important;
+  display:grid !important;
+  grid-template-columns:46px minmax(0, 1fr) 34px !important;
+  align-items:center !important;
+  column-gap:14px !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+  cursor:pointer !important;
+}
+
+#themeCustomContent .setting-main,
+#themePresetContent .setting-main{
+  grid-column:2 !important;
+}
+
+.theme-swatch{
+  grid-column:1;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  box-shadow:0 0 0 2px rgba(255,255,255,.18) inset;
+}
+
+.theme-settings-content .setting-main{
+  grid-column:2 !important;
+}
+
+.theme-swatch{
+  grid-column:1;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  box-shadow:0 0 0 2px rgba(255,255,255,.18) inset;
+}
+
+.theme-swatch.custom{
+  border-radius:10px;
+}
+
+.theme-preset-item.active .setting-title,
+.theme-preset-item.active .setting-arrow{
+  color:#ffffff !important;
+}
+
+/* 媒體分頁不要被一般 button 樣式蓋掉 */
+.media-tabs{
+  flex-shrink:0 !important;
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  height:58px !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+}
+
+.media-tab{
+  all:unset !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  color:#777b84 !important;
+  font-size:24px !important;
+  line-height:1 !important;
+  font-family:"kr", "cn", system-ui, sans-serif !important;
+  cursor:pointer !important;
+  user-select:none !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+.media-tab.active{
+  color:#d9dbe0 !important;
+  font-weight:700 !important;
+}
+
+/* 語音頁三欄正方形 */
+.media-grid-audio{
+  width:100% !important;
+  max-width:100% !important;
+  display:grid !important;
+  grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+  gap:6px !important;
+}
+
+.media-grid-audio .audio-thumb-card,
+.media-grid-audio .media-card.audio-thumb-card{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  aspect-ratio:1 / 1 !important;
+  border-radius:14px !important;
+  background:var(--theme-audio-bg) !important;
+  overflow:hidden !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:0 !important;
+}
+
+.audio-thumb-avatar{
+  position:absolute !important;
+  top:18% !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:64px !important;
+  height:64px !important;
+  border-radius:50% !important;
+  background-image:var(--avatar-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.22) !important;
+}
+
+.audio-thumb-name{
+  position:absolute !important;
+  top:58% !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  color:#fff !important;
+  font-size:16px !important;
+  font-weight:700 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.2) !important;
+  white-space:nowrap !important;
+}
+
+.audio-thumb-play{
+  position:absolute !important;
+  bottom:16% !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:42px !important;
+  height:42px !important;
+  border-radius:50% !important;
+  background:rgba(255,255,255,.22) !important;
+  color:white !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:20px !important;
+  line-height:1 !important;
+  padding-left:3px !important;
+  box-shadow:0 2px 10px rgba(0,0,0,.22) !important;
+  backdrop-filter:blur(4px) !important;
+}
+
+/* 語音點開：整頁主題色 */
+.media-viewer.audio-viewer-mode{
+  background:var(--theme-audio-bg) !important;
+  border-left:1px solid rgba(255,255,255,.18) !important;
+  border-right:1px solid rgba(255,255,255,.18) !important;
+}
+
+.audio-viewer-mode .media-viewer-header{
+  background:transparent !important;
+}
+
+.audio-viewer-mode .media-viewer-body{
+  padding:0 !important;
+  background:var(--theme-audio-bg) !important;
+}
+
+.audio-viewer-page{
+  min-height:100% !important;
+  width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:var(--theme-audio-bg) !important;
+  padding:40px 24px 80px !important;
+  box-sizing:border-box !important;
+}
+
+.audio-viewer-center{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  transform:translateY(-28px) !important;
+}
+
+.audio-viewer-avatar{
+  width:180px !important;
+  height:180px !important;
+  border-radius:50% !important;
+  background-image:var(--avatar-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.18) !important;
+  margin-bottom:22px !important;
+}
+
+.audio-viewer-name{
+  color:white !important;
+  font-size:30px !important;
+  font-weight:700 !important;
+  font-family:"kr", "cn", system-ui, sans-serif !important;
+}
+
+.audio-viewer-player{
+  width:min(360px, 86vw) !important;
+  position:absolute !important;
+  left:50% !important;
+  bottom:28px !important;
+  transform:translateX(-50%) !important;
+}
+
+.audio-viewer-player audio{
+  width:100% !important;
+}
+
+
+/* ===== CUSTOM CHAT BACKGROUND FINAL ===== */
+.chat{
+  background-color:var(--theme-chat-bg) !important;
+  background-image:var(--chat-bg-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+}
+
+/* 自訂背景 / 預設主題頁維持聊天室設定列表排版 */
+.theme-settings-content .setting-item{
+  min-height:92px !important;
+  padding:18px 0 !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+  display:grid !important;
+  grid-template-columns:minmax(0, 1fr) 34px !important;
+  align-items:center !important;
+  column-gap:18px !important;
+  cursor:pointer !important;
+}
+
+.theme-settings-content .setting-item:has(.theme-swatch){
+  grid-template-columns:46px minmax(0, 1fr) 34px !important;
+}
+
+.theme-settings-content .setting-item:has(.theme-swatch) .setting-main{
+  grid-column:2 !important;
+}
+
+.theme-swatch{
+  grid-column:1 !important;
+  width:34px !important;
+  height:34px !important;
+  border-radius:50% !important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.18) inset !important;
+  background:var(--theme-accent);
+}
+
+.theme-swatch.custom{
+  border-radius:10px !important;
+  background:var(--theme-chat-bg);
+}
+
+.theme-swatch.image-swatch{
+  background-image:var(--chat-bg-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-color:#2b2d35 !important;
+}
+
+.theme-preset-item.active .setting-title,
+.theme-preset-item.active .setting-arrow{
+  color:#ffffff !important;
+}
+
+
+.settings-page,
+.settings-edit-page,
+.theme-settings-page,
+.media-tabs{
+  background:var(--theme-settings-bg) !important;
+}
+
+.media-page,
+.media-content{
+  background:var(--theme-media-bg) !important;
+}
+
+.settings-header,
+.media-page .header,
+.settings-edit-header,
+.media-viewer-header{
+  background:var(--theme-panel) !important;
+}
+
+.chat-header{
+  background:var(--theme-panel) !important;
+}
+
+.input-area{
+  background:var(--theme-input-area-bg) !important;
+}
+
+.input-area input{
+  background:var(--theme-input-bg) !important;
+  font-family:"kr", "cn", system-ui, sans-serif !important;
+}
+
+.header-search-box{
+  background:var(--theme-input-bg) !important;
+}
+
+.settings-edit-input{
+  background:transparent !important;
+}
+
+.bubble{
+  background:var(--theme-bubble-bg) !important;
+}
+
+.user-bubble{
+  background:var(--theme-card) !important;
+}
+
+.quote-box,
+.reply-line{
+  background:var(--theme-quote) !important;
 }
