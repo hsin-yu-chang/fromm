@@ -159,14 +159,15 @@ function addArtistMessage(item){
   row.innerHTML = `
     <div class="avatar"></div>
     <div class="message-body">
+    <div class="artist-name">${escapeHtml(artistName)}</div>
 
-      ${quoteHtml}
-      <div style="display:flex">
-        ${contentHtml}
-        <div class="time">${formatTime(typeof item === "string" ? "" : item.time)}</div>
-      </div>
+    ${quoteHtml}
+    <div class="message-line">
+      ${contentHtml}
+      <div class="time">${formatTime(typeof item === "string" ? "" : item.time)}</div>
     </div>
-  `;
+    </div>
+   `;
 
   chat.appendChild(row);
 }
