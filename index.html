@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fromm Mock Chat</title>
-<link rel="stylesheet" href="./style.css?v=300">
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
@@ -13,7 +12,7 @@
   <div class="header chat-header">
     <div class="header-bar" id="headerNormal">
       <button class="nav-btn back-btn" type="button" aria-label="返回">‹</button>
-      <div class="name" id="artistName">선우</div>
+      <div class="name" id="artistName">&nbsp;선우</div>
 
       <div class="header-actions">
         <button class="nav-btn search-btn" type="button" aria-label="搜尋" onclick="openSearch()">
@@ -35,7 +34,6 @@
     </div>
   </div>
 
-
   <div class="chat" id="chat"></div>
 
   <div class="input-area">
@@ -45,7 +43,6 @@
 </div>
 
 <div id="settingsPage" class="settings-page">
-
   <div class="header settings-header">
     <div class="header-bar">
       <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="showChat()">‹</button>
@@ -57,23 +54,10 @@
     </div>
   </div>
 
-  <div class="settings-content">
-
-    <div class="setting-item" data-page="media">照片、影片</div>
-    <div class="setting-item">語音訊息</div>
-    <div class="setting-item">我的暱稱</div>
-    <div class="setting-item">聊天室名稱</div>
-    <div class="setting-item">聊天室背景設定</div>
-    <div class="setting-item">翻譯</div>
-    <div class="setting-item">只查看我收到的回覆</div>
-    <div class="setting-item">接收通知</div>
-    <div class="setting-item">重新整理最近訊息</div>
-    <div class="setting-item">恢復所有訊息</div>
-
-  </div>
-
+  <div class="settings-content" id="settingsContent"></div>
 </div>
 
-<script src="./script.js?v=300"></script>
+<script src="./script.js?v=500"></script>
+<script src="./fake-scrollbar.js?v=20"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 const chat = document.getElementById("chat");
-const artistName = "선우";
-const NICKNAME = "더비"; // 想把 OO 換成別的名字，改這裡
+const DEFAULT_ARTIST_NAME = "선우";
+const DEFAULT_NICKNAME = "더비";
+let artistName = localStorage.getItem("frommChatName") || DEFAULT_ARTIST_NAME;
+let NICKNAME = localStorage.getItem("frommNickname") || DEFAULT_NICKNAME;
 let allMessages = {};
 
 function displayText(value){
@@ -582,7 +584,7 @@ function renderMediaPage(){
 
 function normalizePage(page){
   const value = String(page || "chat").replace("#", "").trim();
-  return ["chat", "settings", "media"].includes(value) ? value : "chat";
+  return ["chat", "settings", "media", "edit-nickname", "edit-chat-name"].includes(value) ? value : "chat";
 }
 
 function setPage(page){
@@ -599,12 +601,15 @@ function showPage(page){
   const app = document.querySelector(".app");
   const settingsPage = document.getElementById("settingsPage");
   const mediaPage = document.getElementById("mediaPage");
+  const settingsEditPage = document.getElementById("settingsEditPage");
 
   if(app) app.style.display = "none";
   if(settingsPage) settingsPage.style.display = "none";
   if(mediaPage) mediaPage.style.display = "none";
+  if(settingsEditPage) settingsEditPage.style.display = "none";
 
   if(nextPage === "settings"){
+    renderSettingsItems();
     if(settingsPage) settingsPage.style.display = "flex";
     return;
   }
@@ -613,6 +618,13 @@ function showPage(page){
     const pageEl = ensureMediaPage();
     pageEl.style.display = "flex";
     renderMediaPage();
+    return;
+  }
+
+  if(nextPage === "edit-nickname" || nextPage === "edit-chat-name"){
+    const pageEl = ensureSettingsEditPage();
+    pageEl.style.display = "flex";
+    renderSettingsEditPage(nextPage);
     return;
   }
 
@@ -688,9 +700,208 @@ function closeMediaViewer(){
   if(viewer) viewer.style.display = "none";
 }
 
+
+
+const SETTINGS_EDIT_CONFIG = {
+  "edit-nickname": {
+    title:"編輯您的暱稱。",
+    label:"暱稱",
+    max:20,
+    get:() => NICKNAME,
+    set:value => {
+      NICKNAME = value;
+      localStorage.setItem("frommNickname", NICKNAME);
+      renderMessages(allMessages);
+    }
+  },
+  "edit-chat-name": {
+    title:"編輯聊天室名稱。",
+    label:"聊天室名稱",
+    max:20,
+    get:() => artistName,
+    set:value => {
+      artistName = value;
+      localStorage.setItem("frommChatName", artistName);
+    }
+  }
+};
+
+let currentSettingsEditType = "";
+
+function ensureSettingsEditPage(){
+  let page = document.getElementById("settingsEditPage");
+  if(page) return page;
+
+  page = document.createElement("div");
+  page.id = "settingsEditPage";
+  page.className = "settings-page settings-edit-page";
+  page.innerHTML = `
+    <div class="header settings-edit-header">
+      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">‹</button>
+      <button class="settings-save-btn" id="settingsEditSaveBtn" type="button" onclick="saveSettingsEdit()">儲存</button>
+    </div>
+
+    <div class="settings-edit-content">
+      <div class="settings-edit-title" id="settingsEditTitle"></div>
+
+      <div class="settings-edit-field">
+        <label class="settings-edit-label" id="settingsEditLabel" for="settingsEditInput"></label>
+        <div class="settings-edit-input-row">
+          <input class="settings-edit-input" id="settingsEditInput" type="text" autocomplete="off" spellcheck="false">
+          <button class="settings-edit-clear" id="settingsEditClearBtn" type="button" aria-label="清除" onclick="clearSettingsEditInput()">×</button>
+        </div>
+      </div>
+
+      <div class="settings-edit-count" id="settingsEditCount"></div>
+    </div>
+  `;
+
+  document.body.appendChild(page);
+
+  const input = page.querySelector("#settingsEditInput");
+  input.addEventListener("input", updateSettingsEditState);
+  input.addEventListener("keydown", e => {
+    if(e.key === "Enter"){
+      e.preventDefault();
+      saveSettingsEdit();
+    }
+  });
+
+  return page;
+}
+
+function renderSettingsEditPage(type){
+  currentSettingsEditType = type;
+  const config = SETTINGS_EDIT_CONFIG[type];
+  if(!config) return;
+
+  const page = ensureSettingsEditPage();
+  const title = page.querySelector("#settingsEditTitle");
+  const label = page.querySelector("#settingsEditLabel");
+  const input = page.querySelector("#settingsEditInput");
+
+  title.textContent = config.title;
+  label.textContent = config.label;
+  input.maxLength = config.max;
+  input.value = config.get();
+
+  updateSettingsEditState();
+  requestAnimationFrame(() => input.focus());
+}
+
+function updateSettingsEditState(){
+  const config = SETTINGS_EDIT_CONFIG[currentSettingsEditType];
+  const input = document.getElementById("settingsEditInput");
+  const count = document.getElementById("settingsEditCount");
+  const saveBtn = document.getElementById("settingsEditSaveBtn");
+  const clearBtn = document.getElementById("settingsEditClearBtn");
+  if(!config || !input || !count || !saveBtn) return;
+
+  const rawValue = input.value || "";
+  const value = rawValue.trim();
+  const len = [...rawValue].length;
+  const hasValue = value.length > 0;
+
+  count.textContent = `${len}/${config.max}`;
+  saveBtn.disabled = !hasValue;
+  saveBtn.classList.toggle("active", hasValue);
+  if(clearBtn) clearBtn.style.visibility = rawValue ? "visible" : "hidden";
+}
+
+function clearSettingsEditInput(){
+  const input = document.getElementById("settingsEditInput");
+  if(!input) return;
+  input.value = "";
+  updateSettingsEditState();
+  input.focus();
+}
+
+function saveSettingsEdit(){
+  const config = SETTINGS_EDIT_CONFIG[currentSettingsEditType];
+  const input = document.getElementById("settingsEditInput");
+  if(!config || !input) return;
+
+  const value = input.value.trim();
+  if(!value) return;
+
+  config.set(value);
+  updateSettingsLabels();
+  setPage("settings");
+}
+
+const SETTINGS_ITEMS = [
+  { title:"照片、影片", value:"", page:"media" },
+  { title:"語音訊息", value:"" },
+  { title:"我的暱稱", value:() => NICKNAME, action:"edit-nickname" },
+  { title:"聊天室名稱", value:() => artistName, action:"edit-chat-name" },
+  { title:"聊天室背景設定", value:"" },
+
+];
+
+function renderSettingsItems(){
+  const settingsContent = document.getElementById("settingsContent");
+  if(!settingsContent) return;
+
+  settingsContent.innerHTML = SETTINGS_ITEMS.map(item => {
+    const attrs = ["class=\"setting-item\"", "role=\"button\"", "tabindex=\"0\""];
+    if(item.page) attrs.push(`data-page="${escapeAttr(item.page)}"`);
+    if(item.action) attrs.push(`data-action="${escapeAttr(item.action)}"`);
+
+    const value = typeof item.value === "function" ? item.value() : item.value;
+
+    return `
+      <div ${attrs.join(" ")}>
+        <div class="setting-main">
+          <div class="setting-title">${escapeHtml(item.title)}</div>
+          ${value ? `<div class="setting-value">${escapeHtml(value)}</div>` : ""}
+        </div>
+        <div class="setting-arrow" aria-hidden="true">›</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function updateSettingsLabels(){
+  const artistEl = document.getElementById("artistName");
+  if(artistEl) artistEl.textContent = artistName;
+  renderSettingsItems();
+}
+
+function editNickname(){
+  setPage("edit-nickname");
+}
+
+function editChatName(){
+  setPage("edit-chat-name");
+}
+
 document.addEventListener("click", e => {
   const mediaItem = e.target.closest('[data-page="media"]');
-  if(mediaItem) showMediaPage();
+  if(mediaItem){
+    showMediaPage();
+    return;
+  }
+
+  const actionItem = e.target.closest('[data-action]');
+  const action = actionItem?.dataset.action;
+
+  if(action === "edit-nickname"){
+    editNickname();
+    return;
+  }
+
+  if(action === "edit-chat-name"){
+    editChatName();
+    return;
+  }
+});
+
+document.addEventListener("keydown", e => {
+  const item = e.target.closest?.(".setting-item");
+  if(!item) return;
+  if(e.key !== "Enter" && e.key !== " ") return;
+  e.preventDefault();
+  item.click();
 });
 
 window.addEventListener("hashchange", () => {
@@ -704,6 +915,7 @@ fetch("./messages.json", { cache: "no-store" })
   })
   .then(messages => {
     allMessages = messages;
+    updateSettingsLabels();
     renderMessages(allMessages);
 
     const initialPage = normalizePage(location.hash.replace("#", "") || "chat");
