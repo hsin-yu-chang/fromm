@@ -49,7 +49,7 @@
   --theme-setting-value:#a5a8af;
   --theme-setting-arrow:#a5a8af;
   --chat-bg-image:none;
-  --avatar-image:url("./icons/20240820_093207_inSave_5.jpg");
+  --avatar-image:url("./icons/profile.jpg");
 }
 
 *{box-sizing:border-box}
@@ -1010,7 +1010,7 @@ input{
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#777b84;
+  color:var(--theme-media-tab-inactive) !important;
   font-size:24px;
   line-height:1;
   font-family:"kr", "cn", system-ui, sans-serif;
@@ -1019,8 +1019,8 @@ input{
 }
 
 .media-tab.active{
-  color:#d9dbe0;
-  font-weight:700;
+  color:var(--theme-media-tab) !important;
+  font-weight:700 !important;
 }
 
 .media-grid-audio{
@@ -1222,7 +1222,7 @@ body{
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
-  color:rgba(17,18,22,.32) !important;
+  color:var(--theme-media-tab-inactive) !important;
   font-size:24px !important;
   line-height:1 !important;
   font-family:"kr", "cn", system-ui, sans-serif !important;
@@ -1233,6 +1233,11 @@ body{
   border-radius:0 !important;
   padding:0 !important;
   margin:0 !important;
+}
+
+.media-tab.active{
+  color:var(--theme-media-tab) !important;
+  font-weight:700 !important;
 }
 
 .media-tab.active{

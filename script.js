@@ -41,6 +41,10 @@ const THEME_PRESETS = {
       userText:"#111216",
       inputText:"#111216",
       placeholderText:"#8d6875",
+      //選中的字色
+      mediaTab:"#c9658b",
+      //沒選中的字色
+      mediaTabInactive:"#b98a9a",
     },
 
     blue: {
@@ -75,6 +79,8 @@ const THEME_PRESETS = {
       userText:"#111216",
       inputText:"#111216",
       placeholderText:"#65798f",
+      mediaTab:"#3f659d",
+      mediaTabInactive:"#7f93ad",
     },
 
     purple: {
@@ -109,6 +115,8 @@ const THEME_PRESETS = {
       userText:"#111216",
       inputText:"#111216",
       placeholderText:"#76698f",
+      mediaTab:"#6650a8",
+      mediaTabInactive:"#8d7cac",
     },
 
   black: {
@@ -135,6 +143,8 @@ const THEME_PRESETS = {
     userText:"#ffffff",
     inputText:"#ffffff",
     placeholderText:"#8f949d",
+    mediaTab:"#e6e6e6",
+    mediaTabInactive:"#5f5f5f",
   }
 };
 
@@ -229,6 +239,8 @@ function applyThemeColor(){
   document.documentElement.style.setProperty("--theme-audio-bg", palette.audioBg);
   document.documentElement.style.setProperty("--theme-media-card", palette.mediaCard);
   document.documentElement.style.setProperty("--theme-accent", palette.accent);
+  document.documentElement.style.setProperty("--theme-media-tab", palette.mediaTab || palette.header || "#ffffff");
+  document.documentElement.style.setProperty("--theme-media-tab-inactive", palette.mediaTabInactive || "rgba(255,255,255,.35)");
   document.documentElement.style.setProperty("--theme-text-color", palette.textColor || "#111216");
   document.documentElement.style.setProperty("--theme-artist-text", palette.artistText || palette.textColor || "#111216");
   document.documentElement.style.setProperty("--theme-user-text", palette.userText || palette.textColor || "#ffffff");
@@ -238,7 +250,7 @@ function applyThemeColor(){
   document.documentElement.style.setProperty("--theme-setting-title", palette.textColor || "#d9dbe0");
   document.documentElement.style.setProperty("--theme-setting-value", palette.textColor || "#a5a8af");
   document.documentElement.style.setProperty("--theme-setting-arrow", palette.textColor || "#a5a8af");
-  document.documentElement.style.setProperty("--theme-tab-active", palette.tabActive || palette.header);
+
 
   const image = String(palette.chatBgImage || "").trim();
   const cssImage = image ? `url("${image.replaceAll('"', '\"')}")` : "none";
