@@ -523,8 +523,11 @@ input{
 .media-content{
   flex:1;
   min-height:0;
+  width:100%;
+  max-width:100%;
   overflow-y:auto;
-  padding:18px 14px 28px;
+  overflow-x:hidden;
+  padding:18px 12px 28px;
   -webkit-overflow-scrolling:touch;
 }
 
@@ -535,8 +538,10 @@ input{
 }
 
 .media-grid{
+  width:100%;
+  max-width:100%;
   display:grid;
-  grid-template-columns:repeat(3, 1fr);
+  grid-template-columns:repeat(3, minmax(0, 1fr));
   gap:6px;
 }
 
@@ -546,6 +551,8 @@ input{
   border-radius:10px;
   background:#24262d;
   aspect-ratio:1 / 1;
+  min-width:0;
+  max-width:100%;
 }
 
 .media-card img,
