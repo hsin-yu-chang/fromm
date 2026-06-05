@@ -10,67 +10,106 @@ const DEFAULT_CHAT_BG_IMAGE = "";
 
 const THEME_PRESETS = {
   pink: {
-    label:"粉",
-    base:"#e88aac",
+      label:"粉",
+      base:"#e88aac",
+      //聊天畫面背景，就是訊息泡泡後面那整塊背景。
+      chatBg:"#ffe4ee",
+      //設定頁背景，例如聊天室設定、聊天室主題、自訂背景、預設主題頁的深色背景。
+      settingsBg:"#ffe4ee",
+      //照片影片 / 語音訊息頁背景。
+      mediaBg:"#ffe4ee",
+      //上方標題列，例如聊天室名稱那條、設定頁上方標題列。
+      header:"#e88aac",
+      //下方輸入區整條背景，就是輸入框和送出按鈕外面的底色。
+      inputArea:"#f7bfd1",
+      //輸入框本身背景，也會影響搜尋框背景。
+      inputBg:"#fff3f7",
+      //對方訊息框背景，也就是藝人訊息泡泡。
+      artistBubble:"#ffffff",
+      //自己傳的訊息框背景。
+      userBubble:"#f4b6cb",
+      //回覆引用框背景，也就是被回覆訊息那塊小框，還有旁邊的線。
+      quoteBubble:"#f8cddd",
+      //語音相關背景，語音縮圖卡片、語音點開後的播放頁背景。
+      audioBg:"#f4a6c0",
+      //照片影片頁的卡片底色，圖片或影片還沒載入、或語音卡片底色會用到。
+      mediaCard:"#f6bfd1",
+      //輔助色，之後可以拿來做色票邊框、選中狀態、提示文字之類的。
+      accent:"#d982a4",
+      textColor:"#111216",
+      artistText:"#111216",
+      userText:"#111216",
+      inputText:"#111216",
+      placeholderText:"#8d6875",
+    },
 
-    chatBg:"#fff3f7",
-    settingsBg:"#3f1f2e",
-    mediaBg:"#3f1f2e",
+    blue: {
+      label:"藍",
+      base:"#6f9fe8",
+      //聊天畫面背景，就是訊息泡泡後面那整塊背景。
+      chatBg:"#eaf5ff",
+      //設定頁背景，例如聊天室設定、聊天室主題、自訂背景、預設主題頁的深色背景。
+      settingsBg:"#eaf5ff",
+      //照片影片 / 語音訊息頁背景。
+      mediaBg:"#eaf5ff",
+      //上方標題列，例如聊天室名稱那條、設定頁上方標題列。
+      header:"#7fb0ee",
+      //下方輸入區整條背景，就是輸入框和送出按鈕外面的底色。
+      inputArea:"#b9d8ff",
+      //輸入框本身背景，也會影響搜尋框背景。
+      inputBg:"#f3f9ff",
+      //對方訊息框背景，也就是藝人訊息泡泡。
+      artistBubble:"#ffffff",
+      //自己傳的訊息框背景。
+      userBubble:"#b7d6ff",
+      //回覆引用框背景，也就是被回覆訊息那塊小框，還有旁邊的線。
+      quoteBubble:"#d3e6ff",
+      //語音相關背景，語音縮圖卡片、語音點開後的播放頁背景。
+      audioBg:"#9bc6f7",
+      //照片影片頁的卡片底色，圖片或影片還沒載入、或語音卡片底色會用到。
+      mediaCard:"#c4ddff",
+      //輔助色，之後可以拿來做色票邊框、選中狀態、提示文字之類的。
+      accent:"#5c8fd6",
+      textColor:"#111216",
+      artistText:"#111216",
+      userText:"#111216",
+      inputText:"#111216",
+      placeholderText:"#65798f",
+    },
 
-    header:"#c9658b",
-    inputArea:"#7c4058",
-    inputBg:"#9d5571",
-
-    artistBubble:"#ffffff",
-    userBubble:"#d982a4",
-    quoteBubble:"#b95f82",
-
-    audioBg:"#e88aac",
-    mediaCard:"#f3a8c0",
-    accent:"#f7bfd1"
-  },
-
-  blue: {
-    label:"藍",
-    base:"#6f9fe8",
-
-    chatBg:"#eef6ff",
-    settingsBg:"#17263f",
-    mediaBg:"#17263f",
-
-    header:"#3f659d",
-    inputArea:"#263d61",
-    inputBg:"#395985",
-
-    artistBubble:"#ffffff",
-    userBubble:"#6b91d2",
-    quoteBubble:"#5277b2",
-
-    audioBg:"#78a8ee",
-    mediaCard:"#8db8f5",
-    accent:"#b9d4ff"
-  },
-
-  purple: {
-    label:"紫",
-    base:"#9a7be8",
-
-    chatBg:"#f6f1ff",
-    settingsBg:"#241b3f",
-    mediaBg:"#241b3f",
-
-    header:"#6650a8",
-    inputArea:"#40326d",
-    inputBg:"#5b4890",
-
-    artistBubble:"#ffffff",
-    userBubble:"#8e78cf",
-    quoteBubble:"#725eb4",
-
-    audioBg:"#9a7be8",
-    mediaCard:"#b29af0",
-    accent:"#d6c9ff"
-  },
+    purple: {
+      label:"紫",
+      base:"#9a7be8",
+      //聊天畫面背景，就是訊息泡泡後面那整塊背景。
+      chatBg:"#f2ecff",
+      //設定頁背景，例如聊天室設定、聊天室主題、自訂背景、預設主題頁的深色背景。
+      settingsBg:"#f2ecff",
+      //照片影片 / 語音訊息頁背景。
+      mediaBg:"#f2ecff",
+      //上方標題列，例如聊天室名稱那條、設定頁上方標題列。
+      header:"#a58bed",
+      //下方輸入區整條背景，就是輸入框和送出按鈕外面的底色。
+      inputArea:"#d2c3ff",
+      //輸入框本身背景，也會影響搜尋框背景。
+      inputBg:"#faf7ff",
+      //對方訊息框背景，也就是藝人訊息泡泡。
+      artistBubble:"#ffffff",
+      //自己傳的訊息框背景。
+      userBubble:"#c9b8f4",
+      //回覆引用框背景，也就是被回覆訊息那塊小框，還有旁邊的線。
+      quoteBubble:"#ded3ff",
+      //語音相關背景，語音縮圖卡片、語音點開後的播放頁背景。
+      audioBg:"#b8a4f0",
+      //照片影片頁的卡片底色，圖片或影片還沒載入、或語音卡片底色會用到。
+      mediaCard:"#d6c9ff",
+      //輔助色，之後可以拿來做色票邊框、選中狀態、提示文字之類的。
+      accent:"#7f65c8",
+      textColor:"#111216",
+      artistText:"#111216",
+      userText:"#111216",
+      inputText:"#111216",
+      placeholderText:"#76698f",
+    },
 
   black: {
     label:"黑",
@@ -90,7 +129,12 @@ const THEME_PRESETS = {
 
     audioBg:"#24262d",
     mediaCard:"#24262d",
-    accent:"#8f9199"
+    accent:"#8f9199",
+    textColor:"#ffffff",
+    artistText:"#111216",
+    userText:"#ffffff",
+    inputText:"#ffffff",
+    placeholderText:"#8f949d",
   }
 };
 
@@ -185,6 +229,16 @@ function applyThemeColor(){
   document.documentElement.style.setProperty("--theme-audio-bg", palette.audioBg);
   document.documentElement.style.setProperty("--theme-media-card", palette.mediaCard);
   document.documentElement.style.setProperty("--theme-accent", palette.accent);
+  document.documentElement.style.setProperty("--theme-text-color", palette.textColor || "#111216");
+  document.documentElement.style.setProperty("--theme-artist-text", palette.artistText || palette.textColor || "#111216");
+  document.documentElement.style.setProperty("--theme-user-text", palette.userText || palette.textColor || "#ffffff");
+  document.documentElement.style.setProperty("--theme-input-text", palette.inputText || palette.textColor || "#ffffff");
+  document.documentElement.style.setProperty("--theme-placeholder-text", palette.placeholderText || "#8f949d");
+
+  document.documentElement.style.setProperty("--theme-setting-title", palette.textColor || "#d9dbe0");
+  document.documentElement.style.setProperty("--theme-setting-value", palette.textColor || "#a5a8af");
+  document.documentElement.style.setProperty("--theme-setting-arrow", palette.textColor || "#a5a8af");
+  document.documentElement.style.setProperty("--theme-tab-active", palette.tabActive || palette.header);
 
   const image = String(palette.chatBgImage || "").trim();
   const cssImage = image ? `url("${image.replaceAll('"', '\"')}")` : "none";
@@ -1057,30 +1111,83 @@ function ensureThemePresetPage(){
 function getThemeName(){
   if(themeMode === "custom") return "自訂背景";
   const preset = THEME_PRESETS[themePreset] || THEME_PRESETS.black;
-  return `預設主題：${preset.label}`;
+  return `主題 ${preset.label}`;
 }
 
 function renderThemeSettingsPage(){
   const content = document.getElementById("themeSettingsContent");
   if(!content) return;
 
-  content.innerHTML = `
-    <div class="setting-item" role="button" tabindex="0" data-page="theme-custom">
-      <div class="setting-main">
-        <div class="setting-title">自訂背景</div>
-        <div class="setting-value">${themeMode === "custom" ? "使用中" : "設定背景顏色／圖片"}</div>
+  const presetKeys = ["pink", "blue", "purple", "black"];
+
+  const presetHtml = presetKeys.map(key => {
+    const preset = THEME_PRESETS[key];
+    const active = themeMode === "preset" && themePreset === key;
+
+    return `
+      <div class="theme-card-item ${active ? "active" : ""}" role="button" tabindex="0" data-theme-preset="${escapeAttr(key)}">
+        <div class="theme-card-swatch" style="background:${escapeAttr(preset.base)}"></div>
+
+        <div class="theme-card-main">
+          <div class="theme-card-title">主題 ${escapeHtml(preset.label)}</div>
+          <div class="theme-card-sub">${active ? "目前使用中" : "套用這個主題"}</div>
+        </div>
+
+        <div class="theme-card-badge">${active ? "使用中" : "套用"}</div>
       </div>
-      <div class="setting-arrow" aria-hidden="true">›</div>
+    `;
+  }).join("");
+
+  content.innerHTML = `
+    <input id="chatBgFileInput" type="file" accept="image/*" style="display:none">
+
+    <div class="theme-card-item ${themeMode === "custom" ? "active" : ""}" role="button" tabindex="0" data-action="choose-bg-image">
+      <div class="theme-card-swatch image-swatch"></div>
+
+      <div class="theme-card-main">
+        <div class="theme-card-title">自訂背景</div>
+        <div class="theme-card-sub">${chatBgImage ? "已設定照片" : "選擇照片作為聊天背景"}</div>
+      </div>
+
+      <div class="theme-card-badge">${themeMode === "custom" ? "使用中" : "選擇"}</div>
     </div>
 
-    <div class="setting-item" role="button" tabindex="0" data-page="theme-presets">
-      <div class="setting-main">
-        <div class="setting-title">預設主題</div>
-        <div class="setting-value">${escapeHtml(getThemeName())}</div>
-      </div>
-      <div class="setting-arrow" aria-hidden="true">›</div>
-    </div>
+    ${presetHtml}
   `;
+
+  const fileInput = document.getElementById("chatBgFileInput");
+  if(fileInput){
+    fileInput.addEventListener("change", setCustomBgImageFromFile);
+  }
+}
+
+function chooseChatBgImage(){
+  const input = document.getElementById("chatBgFileInput");
+  if(input) input.click();
+}
+
+function setCustomBgImageFromFile(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+
+    themeMode = "custom";
+    chatBgImage = dataUrl;
+
+    localStorage.setItem("frommThemeMode", themeMode);
+    localStorage.setItem("frommChatBgImage", chatBgImage);
+
+    applyThemeColor();
+    renderThemeSettingsPage();
+    updateSettingsLabels();
+    renderMessages(allMessages);
+  };
+
+  reader.readAsDataURL(file);
 }
 
 function renderThemeCustomPage(){
@@ -1420,6 +1527,11 @@ document.addEventListener("click", e => {
 
   const actionItem = e.target.closest('[data-action]');
   const action = actionItem?.dataset.action;
+
+  if(action === "choose-bg-image"){
+    chooseChatBgImage();
+    return;
+  }
 
   if(action === "edit-nickname"){
     editNickname();
