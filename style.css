@@ -79,7 +79,10 @@ body{
   white-space:normal;
 }
 
-.msg-text{white-space:pre-wrap}
+.msg-text{
+white-space:pre-wrap;
+word-break:break-word;
+}
 
 .reply-wrap{
   display:flex;
@@ -597,4 +600,72 @@ input{
   text-align:center;
   padding:48px 12px;
   font-size:15px;
+}
+.bubble,
+.msg-text{
+  white-space:normal !important;
+  word-break:break-all !important;
+  overflow-wrap:anywhere !important;
+}
+.media-card{
+  cursor:pointer;
+}
+
+.media-viewer{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:none;
+  flex-direction:column;
+  background:rgba(0,0,0,.96);
+  color:white;
+}
+
+.media-viewer-header{
+  height:58px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  background:#111216;
+}
+
+.viewer-btn{
+  all:unset;
+  cursor:pointer;
+  font-size:28px;
+  width:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+}
+
+.viewer-download{
+  color:white;
+  text-decoration:none;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.media-viewer-body{
+  flex:1;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+}
+
+.viewer-media{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+}
+
+.viewer-audio{
+  width:90%;
+  max-width:360px;
 }
