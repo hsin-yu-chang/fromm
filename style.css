@@ -1,5 +1,5 @@
 @font-face{
-  font-family:"GamjaFlower";
+  font-family:"kr";
   src:url("./font/Gaegu-Regular.ttf") format("truetype");
   font-weight:400;
   font-style:normal;
@@ -13,7 +13,7 @@
 }
 
 @font-face{
-  font-family:"GirlChinese";
+  font-family:"cn";
   src:url("./font/girl.ttf") format("truetype");
   font-weight:400;
   font-style:normal;
@@ -33,7 +33,7 @@ body{
   width:100%;
   height:100%;
   overflow:hidden;
-  font-family:"GamjaFlower", "GirlChinese", system-ui, sans-serif;
+  font-family:"kr", "cn", system-ui, sans-serif;
   background:#0f1014;
 }
 
@@ -116,6 +116,21 @@ body{
 }
 .trans-text{
   font-size:17px;
+}
+
+.nickname-text{
+  font-weight:700;
+  line-height:inherit;
+}
+
+.nickname-ko-en{
+  font-size:20px;
+  font-family:"kr", system-ui, sans-serif;
+}
+
+.nickname-cn{
+  font-size:17px;
+  font-family:"cn", system-ui, sans-serif;
 }
 .msg-text{
 white-space:pre-wrap;

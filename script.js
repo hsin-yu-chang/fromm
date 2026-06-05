@@ -139,7 +139,7 @@ function addArtistMessage(item){
   const transHtml = trans && !mediaOnly
       ? `
         <div class="bubble-divider"></div>
-        <div class="msg-text trans-text">${escapeHtml(trans)}</div>
+        <div class="msg-text trans-text">${formatMessageText(typeof item === "string" ? "" : item.trans)}</div>
         <div class="translation-label">Translated by Papago</div>
       `
       : "";
@@ -191,9 +191,25 @@ function escapeHtml(str){
     .replaceAll(">","&gt;");
 }
 
+function formatNickname(value){
+  const text = String(value ?? "");
+
+  return [...text].map(ch => {
+    const escaped = escapeHtml(ch);
+
+    // 中文
+    if(/[\u3400-\u4DBF\u4E00-\u9FFF]/.test(ch)){
+      return `<span class="nickname-cn">${escaped}</span>`;
+    }
+
+    // 韓文、英文、數字、其他
+    return `<span class="nickname-ko-en">${escaped}</span>`;
+  }).join("");
+}
+
 function formatMessageText(value){
   const escaped = escapeHtml(value);
-  return escaped.replaceAll("OO", `<strong class="nickname-text">${escapeHtml(NICKNAME)}</strong>`);
+  return escaped.replaceAll("OO", `<strong class="nickname-text">${formatNickname(NICKNAME)}</strong>`);
 }
 
 function escapeAttr(str){
