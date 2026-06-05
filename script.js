@@ -156,7 +156,7 @@ function addArtistMessage(item){
   row.className = "msg-row";
   row.innerHTML = `
     <div class="avatar"></div>
-    <div>
+    <div class="message-body">
 
       ${quoteHtml}
       <div style="display:flex">

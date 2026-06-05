@@ -43,7 +43,10 @@ body{
 .chat{
   flex:1;
   min-height:0;
+  width:100%;
+  max-width:100%;
   overflow-y:auto;
+  overflow-x:hidden;
   overscroll-behavior:contain;
   padding:18px 14px;
   -webkit-overflow-scrolling:touch;
@@ -53,6 +56,8 @@ body{
   display:flex;
   gap:10px;
   margin-bottom:18px;
+  max-width:100%;
+  overflow:hidden;
 }
 
 .avatar{
@@ -73,7 +78,9 @@ body{
   background:#f1f1f3;
   border-radius:0 18px 18px 18px;
   padding:10px 14px;
-  max-width:280px;
+  max-width:min(280px, calc(100vw - 110px));
+  min-width:0;
+  overflow:hidden;
   font-size:17px;
   line-height:1.3;
   white-space:normal;
@@ -596,11 +603,11 @@ input{
   padding:48px 12px;
   font-size:15px;
 }
-.bubble,
 .msg-text{
-  white-space:normal !important;
-  word-break:break-all !important;
-  overflow-wrap:anywhere !important;
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  max-width:100%;
 }
 .media-card{
   cursor:pointer;
@@ -701,4 +708,16 @@ input{
   line-height:1;
   padding-left:4px; /* 讓三角形視覺置中 */
   box-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+.message-body{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+}
+
+.message-line{
+  display:flex;
+  align-items:flex-end;
+  max-width:100%;
+  min-width:0;
 }
