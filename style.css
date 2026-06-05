@@ -1,3 +1,30 @@
+@font-face{
+  font-family:"GamjaFlower";
+  src:url("./font/Gaegu-Regular.ttf") format("truetype");
+  font-weight:400;
+  font-style:normal;
+  unicode-range:
+    U+0030-0039,  /* 數字 0-9 */
+    U+0041-005A,  /* 英文大寫 A-Z */
+    U+0061-007A,  /* 英文小寫 a-z */
+    U+AC00-D7AF,  /* 韓文音節 */
+    U+1100-11FF,  /* 韓文字母 */
+    U+3130-318F;  /* 韓文相容字母 */
+}
+
+@font-face{
+  font-family:"GirlChinese";
+  src:url("./font/girl.ttf") format("truetype");
+  font-weight:400;
+  font-style:normal;
+  unicode-range:
+
+    U+4E00-9FFF,  /* 中日韓漢字 */
+    U+3400-4DBF,  /* 擴展漢字 */
+    U+3000-303F,  /* 中文標點 */
+    U+FF00-FFEF;  /* 全形符號 */
+}
+
 *{box-sizing:border-box}
 
 html,
@@ -6,7 +33,7 @@ body{
   width:100%;
   height:100%;
   overflow:hidden;
-  font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:"GamjaFlower", "GirlChinese", system-ui, sans-serif;
   background:#0f1014;
 }
 
@@ -81,11 +108,15 @@ body{
   max-width:min(280px, calc(100vw - 110px));
   min-width:0;
   overflow:hidden;
-  font-size:17px;
   line-height:1.3;
   white-space:normal;
 }
-
+.original-text{
+  font-size:20px;
+}
+.trans-text{
+  font-size:17px;
+}
 .msg-text{
 white-space:pre-wrap;
 word-break:break-word;

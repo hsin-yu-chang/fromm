@@ -147,7 +147,7 @@ function addArtistMessage(item){
     const contentHtml = mediaOnly
       ? `<div class="media-wrap">${mediaHtml}</div>`
       : `<div class="bubble">
-            ${showText ? `<div class="msg-text">${escapeHtml(text)}</div>` : ""}
+            ${showText ? `<div class="msg-text original-text">${formatMessageText(typeof item === "string" ? item : item.text)}</div>` : ""}
             ${mediaHtml}
             ${transHtml}
          </div>`;
@@ -189,6 +189,11 @@ function escapeHtml(str){
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;");
+}
+
+function formatMessageText(value){
+  const escaped = escapeHtml(value);
+  return escaped.replaceAll("OO", `<strong class="nickname-text">${escapeHtml(NICKNAME)}</strong>`);
 }
 
 function escapeAttr(str){
