@@ -13,6 +13,7 @@ const FILES_TO_CACHE = [
   "./font/girl.ttf",
 
   "./icons/icon-192.png",
+
 ];
 
 self.addEventListener("install", event => {

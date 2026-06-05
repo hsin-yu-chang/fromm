@@ -3,7 +3,62 @@ const DEFAULT_ARTIST_NAME = "선우";
 const DEFAULT_NICKNAME = "더비";
 let artistName = localStorage.getItem("frommChatName") || DEFAULT_ARTIST_NAME;
 let NICKNAME = localStorage.getItem("frommNickname") || DEFAULT_NICKNAME;
+const DEFAULT_THEME_COLOR = "#111216";
+let themeColor = localStorage.getItem("frommThemeColor") || DEFAULT_THEME_COLOR;
 let allMessages = {};
+let currentMediaTab = "media";
+
+function normalizeHexColor(value){
+  let color = String(value || "").trim();
+  if(!color) return "";
+
+  if(!color.startsWith("#")){
+    color = "#" + color;
+  }
+
+  if(/^#[0-9a-fA-F]{3}$/.test(color)){
+    color = "#" + color.slice(1).split("").map(ch => ch + ch).join("");
+  }
+
+  if(!/^#[0-9a-fA-F]{6}$/.test(color)){
+    return "";
+  }
+
+  return color.toLowerCase();
+}
+
+function mixColor(hex, amount){
+  const color = normalizeHexColor(hex) || DEFAULT_THEME_COLOR;
+  const n = parseInt(color.slice(1), 16);
+
+  let r = (n >> 16) & 255;
+  let g = (n >> 8) & 255;
+  let b = n & 255;
+
+  r = Math.max(0, Math.min(255, r + amount));
+  g = Math.max(0, Math.min(255, g + amount));
+  b = Math.max(0, Math.min(255, b + amount));
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function applyThemeColor(){
+  const color = normalizeHexColor(themeColor) || DEFAULT_THEME_COLOR;
+  themeColor = color;
+
+  // 不把主題色套到整個 body / header / 媒體列表，避免整頁外框變色
+  document.documentElement.style.setProperty("--theme-bg", "#111216");
+  document.documentElement.style.setProperty("--theme-panel", "#17181c");
+
+  // 聊天泡泡、引用框、語音縮圖可跟主題色微調
+  document.documentElement.style.setProperty("--theme-card", mixColor(color, 24));
+
+  // 聊天室內容背景使用很淡的主題色
+  document.documentElement.style.setProperty("--theme-chat-bg", mixColor(color, 238));
+
+  // 只有語音點開的大頁面使用主題主色
+  document.documentElement.style.setProperty("--theme-audio-bg", color);
+}
 
 function displayText(value){
   return String(value ?? "").replaceAll("OO", NICKNAME);
@@ -490,10 +545,11 @@ function getMediaPageItemHtml(item){
 
   if(kind === "audio"){
     return `
-      <div class="media-card audio-card"
-           onclick="openMediaViewer('${rawUrl}', 'audio')">
-        <div class="media-audio-icon">▶</div>
-        <div class="media-audio-text">&nbsp;&nbsp;語音訊息</div>
+      <div class="media-card audio-thumb-card"
+           onclick="openMediaViewer('${rawUrl}', 'audio', '${escapeAttr(time || "")}')">
+        <div class="audio-thumb-avatar"></div>
+        <div class="audio-thumb-name">${escapeHtml(artistName)}</div>
+        <div class="audio-thumb-play">▶</div>
         ${time ? `<span class="media-time">${escapeHtml(time)}</span>` : ""}
       </div>
     `;
@@ -523,6 +579,15 @@ function getMediaPageItemHtml(item){
   `;
 }
 
+
+function normalizeMediaTab(tab){
+  return tab === "audio" ? "audio" : "media";
+}
+
+function getMediaTabTitle(tab){
+  return normalizeMediaTab(tab) === "audio" ? "語音訊息" : "照片、影片";
+}
+
 function ensureMediaPage(){
   let mediaPage = document.getElementById("mediaPage");
   if(mediaPage) return mediaPage;
@@ -534,12 +599,17 @@ function ensureMediaPage(){
     <div class="header settings-header">
       <div class="header-bar">
         <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettingsFromMedia()">‹</button>
-        <div class="name">照片、影片</div>
+        <div class="name" id="mediaPageTitle">照片、影片</div>
         <div class="header-actions placeholder-actions">
           <span class="nav-placeholder"></span>
           <span class="nav-placeholder"></span>
         </div>
       </div>
+    </div>
+
+    <div class="media-tabs" id="mediaTabs">
+      <button class="media-tab active" type="button" data-media-tab="media">照片、影片</button>
+      <button class="media-tab" type="button" data-media-tab="audio">語音訊息</button>
     </div>
 
     <div class="media-content" id="mediaContent"></div>
@@ -549,14 +619,26 @@ function ensureMediaPage(){
   return mediaPage;
 }
 
-function renderMediaPage(){
+function renderMediaPage(tab = currentMediaTab){
+  currentMediaTab = normalizeMediaTab(tab);
+
   const mediaContent = document.getElementById("mediaContent");
   if(!mediaContent) return;
+
+  const titleEl = document.getElementById("mediaPageTitle");
+  if(titleEl) titleEl.textContent = getMediaTabTitle(currentMediaTab);
+
+  document.querySelectorAll(".media-tab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.mediaTab === currentMediaTab);
+  });
 
   const dates = Object.keys(allMessages).sort((a, b) => {
     const diff = dateSortValue(b) - dateSortValue(a);
     return diff || String(b).localeCompare(String(a));
   });
+
+  const allowedKinds = currentMediaTab === "audio" ? ["audio"] : ["image", "video"];
+  const gridClass = currentMediaTab === "audio" ? "media-grid media-grid-audio" : "media-grid";
 
   let html = "";
 
@@ -565,7 +647,7 @@ function renderMediaPage(){
       if(typeof item === "string") return false;
       if(!item.url) return false;
       const kind = getMediaKind(item);
-      return ["image", "video", "audio"].includes(kind);
+      return allowedKinds.includes(kind);
     });
 
     if(!items.length) return;
@@ -573,19 +655,20 @@ function renderMediaPage(){
     html += `
       <section class="media-date-section">
         <div class="media-date-title">${escapeHtml(formatDateLabel(date))}</div>
-        <div class="media-grid">
+        <div class="${gridClass}">
           ${items.map(getMediaPageItemHtml).join("")}
         </div>
       </section>
     `;
   });
 
-  mediaContent.innerHTML = html || `<div class="media-empty">目前沒有照片、影片或音訊檔</div>`;
+  const emptyText = currentMediaTab === "audio" ? "目前沒有語音訊息" : "目前沒有照片或影片";
+  mediaContent.innerHTML = html || `<div class="media-empty">${emptyText}</div>`;
 }
 
 function normalizePage(page){
   const value = String(page || "chat").replace("#", "").trim();
-  return ["chat", "settings", "media", "edit-nickname", "edit-chat-name"].includes(value) ? value : "chat";
+  return ["chat", "settings", "media", "edit-nickname", "edit-chat-name", "edit-theme-color"].includes(value) ? value : "chat";
 }
 
 function setPage(page){
@@ -618,11 +701,11 @@ function showPage(page){
   if(nextPage === "media"){
     const pageEl = ensureMediaPage();
     pageEl.style.display = "flex";
-    renderMediaPage();
+    renderMediaPage(currentMediaTab);
     return;
   }
 
-  if(nextPage === "edit-nickname" || nextPage === "edit-chat-name"){
+  if(nextPage === "edit-nickname" || nextPage === "edit-chat-name" || nextPage === "edit-theme-color"){
     const pageEl = ensureSettingsEditPage();
     pageEl.style.display = "flex";
     renderSettingsEditPage(nextPage);
@@ -632,7 +715,8 @@ function showPage(page){
   if(app) app.style.display = "flex";
 }
 
-function showMediaPage(){
+function showMediaPage(tab = "media"){
+  currentMediaTab = normalizeMediaTab(tab);
   setPage("media");
 }
 
@@ -669,30 +753,47 @@ function ensureMediaViewer(){
   return viewer;
 }
 
-function openMediaViewer(url, kind){
-  const viewer = ensureMediaViewer();
-  const body = document.getElementById("mediaViewerBody");
-  const downloadBtn = document.getElementById("mediaDownloadBtn");
+function openMediaViewer(url, type, time = ""){
+  ensureMediaViewer();
 
-  downloadBtn.href = url;
+  const viewer = document.getElementById("mediaViewer");
+  const viewerBody = document.getElementById("mediaViewerBody");
 
-  if(kind === "video"){
-    body.innerHTML = `
-      <video class="viewer-media" src="${escapeAttr(url)}" controls autoplay></video>
+  viewer.dataset.type = type;
+  viewer.style.display = "flex";
+
+  if(type === "audio"){
+    viewer.classList.add("audio-viewer-mode");
+
+    viewerBody.innerHTML = `
+      <div class="audio-viewer-page">
+        <div class="audio-viewer-avatar"></div>
+        <div class="audio-viewer-name">${escapeHtml(artistName)}</div>
+
+        <div class="audio-viewer-player">
+          <audio controls autoplay preload="metadata" src="${escapeAttr(url)}"></audio>
+        </div>
+      </div>
     `;
-  }else if(kind === "audio"){
-    body.innerHTML = `
-      <audio class="viewer-audio" src="${escapeAttr(url)}" controls autoplay></audio>
-    `;
-  }else{
-    body.innerHTML = `
-      <img class="viewer-media" src="${escapeAttr(url)}">
-    `;
+    return;
   }
 
-  viewer.style.display = "flex";
-}
+  viewer.classList.remove("audio-viewer-mode");
 
+  if(type === "image"){
+    viewerBody.innerHTML = `
+      <img class="media-viewer-image" src="${escapeAttr(url)}">
+    `;
+    return;
+  }
+
+  if(type === "video"){
+    viewerBody.innerHTML = `
+      <video class="media-viewer-video" controls autoplay preload="metadata" src="${escapeAttr(url)}"></video>
+    `;
+    return;
+  }
+}
 function closeMediaViewer(){
   const viewer = document.getElementById("mediaViewer");
   const body = document.getElementById("mediaViewerBody");
@@ -723,6 +824,21 @@ const SETTINGS_EDIT_CONFIG = {
     set:value => {
       artistName = value;
       localStorage.setItem("frommChatName", artistName);
+    }
+  },
+  "edit-theme-color": {
+    title:"編輯聊天室背景。",
+    label:"主題色",
+    max:7,
+    get:() => themeColor,
+    set:value => {
+      const color = normalizeHexColor(value);
+      if(!color) return false;
+
+      themeColor = color;
+      localStorage.setItem("frommThemeColor", themeColor);
+      applyThemeColor();
+      return true;
     }
   }
 };
@@ -825,17 +941,19 @@ function saveSettingsEdit(){
   const value = input.value.trim();
   if(!value) return;
 
-  config.set(value);
+  const saved = config.set(value);
+  if(saved === false) return;
+
   updateSettingsLabels();
   setPage("settings");
 }
 
 const SETTINGS_ITEMS = [
-  { title:"照片、影片", value:"", page:"media" },
-  { title:"語音訊息", value:"" },
+  { title:"照片、影片", value:"", page:"media", tab:"media" },
+  { title:"語音訊息", value:"", page:"media", tab:"audio" },
   { title:"我的暱稱", value:() => NICKNAME, action:"edit-nickname" },
   { title:"聊天室名稱", value:() => artistName, action:"edit-chat-name" },
-  { title:"聊天室背景設定", value:"" },
+  { title:"聊天室背景設定", value:() => themeColor, action:"edit-theme-color" },
 
 ];
 
@@ -846,6 +964,7 @@ function renderSettingsItems(){
   settingsContent.innerHTML = SETTINGS_ITEMS.map(item => {
     const attrs = ["class=\"setting-item\"", "role=\"button\"", "tabindex=\"0\""];
     if(item.page) attrs.push(`data-page="${escapeAttr(item.page)}"`);
+    if(item.tab) attrs.push(`data-tab="${escapeAttr(item.tab)}"`);
     if(item.action) attrs.push(`data-action="${escapeAttr(item.action)}"`);
 
     const value = typeof item.value === "function" ? item.value() : item.value;
@@ -876,10 +995,21 @@ function editChatName(){
   setPage("edit-chat-name");
 }
 
+function editThemeColor(){
+  setPage("edit-theme-color");
+}
+
 document.addEventListener("click", e => {
+  const mediaTabBtn = e.target.closest("[data-media-tab]");
+  if(mediaTabBtn){
+    currentMediaTab = normalizeMediaTab(mediaTabBtn.dataset.mediaTab);
+    renderMediaPage(currentMediaTab);
+    return;
+  }
+
   const mediaItem = e.target.closest('[data-page="media"]');
   if(mediaItem){
-    showMediaPage();
+    showMediaPage(mediaItem.dataset.tab || "media");
     return;
   }
 
@@ -893,6 +1023,11 @@ document.addEventListener("click", e => {
 
   if(action === "edit-chat-name"){
     editChatName();
+    return;
+  }
+
+  if(action === "edit-theme-color"){
+    editThemeColor();
     return;
   }
 });
@@ -916,6 +1051,7 @@ fetch("./messages.json", { cache: "no-store" })
   })
   .then(messages => {
     allMessages = messages;
+    applyThemeColor();
     updateSettingsLabels();
     renderMessages(allMessages);
 
