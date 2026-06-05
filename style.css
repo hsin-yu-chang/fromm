@@ -281,75 +281,75 @@ button{
     padding-bottom:calc(12px + env(safe-area-inset-bottom));
   }
 }
-.nav-btn{
-  cursor:pointer !important;
-  user-select:none !important;
-  -webkit-user-select:none !important;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:36px;
-  height:36px;
-  line-height:1;
-  -webkit-tap-highlight-color:transparent;
-}
-
-.header .nav-btn{
-  cursor:pointer !important;
-}
-
-.header .nav-btn:hover{
-  opacity:.75;
-}
-
-button,
-.setting-item,
-.audio-bubble{
-  cursor:pointer;
-}
-
-input{
-  cursor:text;
-}
-
-/* ===== cursor fix ===== */
-.header .nav-btn,
+/* ===== clickable buttons / cursor fix ===== */
 .header button.nav-btn,
-.nav-btn{
+button.nav-btn{
+  all:unset;
+  box-sizing:border-box;
   cursor:pointer !important;
   user-select:none !important;
   -webkit-user-select:none !important;
-  appearance:none;
-  -webkit-appearance:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:36px;
-  height:36px;
-  padding:0;
-  margin:0;
-  border:0;
-  border-radius:50%;
-  background:transparent;
-  color:inherit;
-  font:inherit;
-  line-height:1;
-  text-align:center;
-  -webkit-tap-highlight-color:transparent;
+  appearance:none !important;
+  -webkit-appearance:none !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  min-height:36px !important;
+
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  background:transparent !important;
+  color:inherit !important;
+
+  font-family:inherit !important;
+  font-size:24px !important;
+  font-weight:400 !important;
+  line-height:1 !important;
+  text-align:center !important;
+  -webkit-tap-highlight-color:transparent !important;
 }
 
-.header .nav-btn:hover,
-.nav-btn:hover{
+.header button.nav-btn:hover,
+button.nav-btn:hover{
   cursor:pointer !important;
+  background:rgba(255,255,255,.08) !important;
   opacity:.75;
-  background:rgba(255,255,255,.08);
 }
 
-.nav-placeholder{
-  width:36px;
-  height:36px;
-  display:block;
-  flex-shrink:0;
+.header button.nav-btn:active,
+button.nav-btn:active{
+  transform:scale(.96);
+}
+
+/* 左上返回箭頭 */
+.header button.nav-btn.back-btn,
+button.nav-btn.back-btn{
+  width:44px !important;
+  height:44px !important;
+  min-width:44px !important;
+  min-height:44px !important;
+  max-width:44px !important;
+  max-height:44px !important;
+  font-size:34px !important;
+  line-height:1 !important;
+  font-weight:400 !important;
+}
+
+.nav-placeholder,
+.empty-btn{
+  width:36px !important;
+  height:36px !important;
+  flex-shrink:0 !important;
+  display:block !important;
+  opacity:0 !important;
+  pointer-events:none !important;
 }
 
 button,
@@ -360,12 +360,4 @@ button,
 
 input{
   cursor:text !important;
-}
-
-.bubble,
-.user-bubble,
-.quote-box,
-.msg-text{
-  user-select:text;
-  -webkit-user-select:text;
 }
