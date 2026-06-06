@@ -878,7 +878,7 @@ input{
 .viewer-btn{
   all:unset;
   cursor:pointer;
-  font-size:28px;
+  font-size:42px;
   width:42px;
   height:42px;
   display:flex;
