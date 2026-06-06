@@ -1578,11 +1578,36 @@ window.addEventListener("hashchange", () => {
   showPage(location.hash.replace("#", "") || "chat");
 });
 
-fetch("./messages.json", { cache: "no-store" })
-  .then(res => {
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  })
+const MESSAGE_FILES = [
+  "./messages.json",
+  "./fromm_messages.json",
+];
+
+async function loadAllMessageFiles(){
+  const jsonList = await Promise.all(
+    MESSAGE_FILES.map(async file => {
+      const res = await fetch(file, { cache: "no-store" });
+      if(!res.ok) throw new Error(`${file} HTTP ${res.status}`);
+      return await res.json();
+    })
+  );
+
+  const merged = {};
+
+  for(const data of jsonList){
+    for(const [date, messages] of Object.entries(data)){
+      if(!merged[date]){
+        merged[date] = [];
+      }
+
+      merged[date].push(...messages);
+    }
+  }
+
+  return merged;
+}
+
+loadAllMessageFiles()
   .then(messages => {
     allMessages = messages;
     applyThemeColor();
