@@ -217,7 +217,7 @@ function getThemePalette(){
 
   return {
     ...preset,
-    chatBgImage:""
+    chatBgImage:chatBgImage
   };
 }
 
@@ -745,8 +745,8 @@ function getMediaPageItemHtml(item){
       <div class="media-card audio-thumb-card"
            onclick="openMediaViewer('${rawUrl}', 'audio', '${escapeAttr(time || "")}')">
         <div class="audio-thumb-avatar"></div>
-        <div class="audio-thumb-name">${escapeHtml(artistName)}</div>
-        <div class="audio-thumb-play">▶</div>
+
+        <div class="audio-thumb-play"></div>
         ${time ? `<span class="media-time">${escapeHtml(time)}</span>` : ""}
       </div>
     `;
@@ -1153,7 +1153,7 @@ function renderThemeSettingsPage(){
   content.innerHTML = `
     <input id="chatBgFileInput" type="file" accept="image/*" style="display:none">
 
-    <div class="theme-card-item ${themeMode === "custom" ? "active" : ""}" role="button" tabindex="0" data-action="choose-bg-image">
+    <div class="theme-card-item ${chatBgImage ? "active" : ""}" role="button" tabindex="0" data-action="choose-bg-image">
       <div class="theme-card-swatch image-swatch"></div>
 
       <div class="theme-card-main">
@@ -1161,7 +1161,7 @@ function renderThemeSettingsPage(){
         <div class="theme-card-sub">${chatBgImage ? "已設定照片" : "選擇照片作為聊天背景"}</div>
       </div>
 
-      <div class="theme-card-badge">${themeMode === "custom" ? "使用中" : "選擇"}</div>
+      <div class="theme-card-badge">${chatBgImage ? "已設定" : "選擇"}</div>
     </div>
 
     ${presetHtml}
@@ -1187,10 +1187,8 @@ function setCustomBgImageFromFile(event){
   reader.onload = e => {
     const dataUrl = e.target.result;
 
-    themeMode = "custom";
     chatBgImage = dataUrl;
 
-    localStorage.setItem("frommThemeMode", themeMode);
     localStorage.setItem("frommChatBgImage", chatBgImage);
 
     applyThemeColor();
@@ -1256,12 +1254,10 @@ function applyPresetTheme(key){
   themeMode = "preset";
   themePreset = key;
   themeColor = THEME_PRESETS[key].base;
-  chatBgImage = "";
 
   localStorage.setItem("frommThemeMode", themeMode);
   localStorage.setItem("frommThemePreset", themePreset);
   localStorage.setItem("frommThemeColor", themeColor);
-  localStorage.removeItem("frommChatBgImage");
 
   applyThemeColor();
   renderThemeSettingsPage();
@@ -1326,9 +1322,7 @@ const SETTINGS_EDIT_CONFIG = {
     set:value => {
       const path = String(value || "").trim();
 
-      themeMode = "custom";
       chatBgImage = path;
-      localStorage.setItem("frommThemeMode", themeMode);
 
       if(path){
         localStorage.setItem("frommChatBgImage", chatBgImage);
