@@ -1318,25 +1318,58 @@ function setCustomBgImageFromFile(event){
 
   event.target.value = "";
 
-  if(chatBgObjectUrl){
-    URL.revokeObjectURL(chatBgObjectUrl);
-  }
+  const img = new Image();
+  img.onload = async () => {
+    const maxW = 1440;
+    const maxH = 2560;
 
-  chatBgObjectUrl = URL.createObjectURL(file);
-  chatBgImage = "has-image";
+    let w = img.width;
+    let h = img.height;
+    const scale = Math.min(maxW / w, maxH / h, 1);
 
-  saveBgImage(file)
-    .then(() => {
-      localStorage.removeItem("frommChatBgImage");
-      applyThemeColor();
-      renderThemeSettingsPage();
-      updateSettingsLabels();
-      renderMessages(allMessages);
-    })
-    .catch(err => {
-      alert("背景圖片儲存失敗，請換小一點的圖片。");
-      console.error(err);
-    });
+    w = Math.round(w * scale);
+    h = Math.round(h * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+
+    canvas.toBlob(async blob => {
+      if(!blob){
+        alert("背景圖片處理失敗");
+        return;
+      }
+
+      if(chatBgObjectUrl){
+        URL.revokeObjectURL(chatBgObjectUrl);
+      }
+
+      chatBgObjectUrl = URL.createObjectURL(blob);
+      chatBgImage = "has-image";
+
+      try {
+        await saveBgImage(blob);
+        localStorage.removeItem("frommChatBgImage");
+
+        applyThemeColor();
+        renderThemeSettingsPage();
+        updateSettingsLabels();
+        renderMessages(allMessages);
+      } catch (err) {
+        alert("背景圖片儲存失敗");
+        console.error(err);
+      }
+    }, "image/jpeg", 0.85);
+  };
+
+  img.onerror = () => {
+    alert("圖片讀取失敗，請換一張圖片。");
+  };
+
+  img.src = URL.createObjectURL(file);
 }
 
 async function deleteChatBgImage(){
