@@ -577,94 +577,109 @@ function normalizeDateText(value){
     .replaceAll("日", "")
     .replaceAll("/", "-")
     .replaceAll(".", "-")
-    .replace(/\s+/g, "");
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function parseSearchDate(keyword){
   const raw = String(keyword || "").trim();
   if(!raw) return null;
 
-  // 只取數字，用來支援 2023 / 202307 / 20230715 / 0715
   const digits = raw.replace(/\D/g, "");
+  let m;
 
-  // 20230715
-  let m = digits.match(/^(\d{4})(\d{2})(\d{2})$/);
+  // 20230302
+  m = digits.match(/^(\d{4})(\d{2})(\d{2})$/);
   if(m){
-    return {
-      year: m[1],
-      month: m[2],
-      day: m[3]
-    };
+    return { year:m[1], month:m[2], day:m[3] };
   }
 
-  // 202307
+  // 230302
+  m = digits.match(/^(\d{2})(\d{2})(\d{2})$/);
+  if(m){
+    return { year:"20" + m[1], month:m[2], day:m[3] };
+  }
+
+  // 202303
   m = digits.match(/^(\d{4})(\d{2})$/);
   if(m){
-    return {
-      year: m[1],
-      month: m[2],
-      day: ""
-    };
+    return { year:m[1], month:m[2], day:"" };
+  }
+
+  // 2303 / 2406
+  m = digits.match(/^(\d{2})(\d{2})$/);
+  if(m && Number(m[1]) >= 20){
+    return { year:"20" + m[1], month:m[2], day:"" };
+  }
+
+  // 0302 / 0715
+  m = digits.match(/^(\d{2})(\d{2})$/);
+  if(m){
+    return { year:"", month:m[1], day:m[2] };
   }
 
   // 2023
   m = digits.match(/^(\d{4})$/);
-  if(m){
-    return {
-      year: m[1],
-      month: "",
-      day: ""
-    };
+  if(m && Number(m[1]) >= 1900){
+    return { year:m[1], month:"", day:"" };
   }
 
-  // 0715
-  m = digits.match(/^(\d{2})(\d{2})$/);
+  // 23 / 24
+  m = digits.match(/^(\d{2})$/);
   if(m){
-    return {
-      year: "",
-      month: m[1],
-      day: m[2]
-    };
+    return { year:"20" + m[1], month:"", day:"" };
   }
 
-  // 把中文日期、斜線、點號、空白都轉成 -
-  const q = raw
-    .replaceAll("年", "-")
-    .replaceAll("月", "-")
-    .replaceAll("日", "")
-    .replaceAll("/", "-")
-    .replaceAll(".", "-")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+  const q = normalizeDateText(raw);
 
-  // 2023-07-15 / 2023 07 15 / 2023年07月15日
+  // 2023-03-02
   m = q.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if(m){
     return {
-      year: m[1],
-      month: m[2].padStart(2, "0"),
-      day: m[3].padStart(2, "0")
+      year:m[1],
+      month:m[2].padStart(2, "0"),
+      day:m[3].padStart(2, "0")
     };
   }
 
-  // 2023-07 / 2023 07 / 2023年07月
+  // 23-03-02
+  m = q.match(/^(\d{2})-(\d{1,2})-(\d{1,2})$/);
+  if(m){
+    return {
+      year:"20" + m[1],
+      month:m[2].padStart(2, "0"),
+      day:m[3].padStart(2, "0")
+    };
+  }
+
+  // 2023-03
   m = q.match(/^(\d{4})-(\d{1,2})$/);
   if(m){
     return {
-      year: m[1],
-      month: m[2].padStart(2, "0"),
-      day: ""
+      year:m[1],
+      month:m[2].padStart(2, "0"),
+      day:""
     };
   }
 
-  // 07-15 / 7-15 / 07月15日
+  // 23-03
+  m = q.match(/^(\d{2})-(\d{1,2})$/);
+  if(m){
+    return {
+      year:"20" + m[1],
+      month:m[2].padStart(2, "0"),
+      day:""
+    };
+  }
+
+  // 03-02
   m = q.match(/^(\d{1,2})-(\d{1,2})$/);
   if(m){
     return {
-      year: "",
-      month: m[1].padStart(2, "0"),
-      day: m[2].padStart(2, "0")
+      year:"",
+      month:m[1].padStart(2, "0"),
+      day:m[2].padStart(2, "0")
     };
   }
 
@@ -716,17 +731,34 @@ function scrollToDate(keyword){
 }
 
 function searchMessages(keyword){
-  if(scrollToDate(keyword)){
-    return;
-  }
+  const rawKeyword = String(keyword || "").trim();
 
-  const q = displayText(keyword).trim().toLowerCase();
-
-  if(!q){
+  if(!rawKeyword){
     renderMessages(allMessages);
     return;
   }
 
+  const parsedDate = parseSearchDate(rawKeyword);
+
+  if(parsedDate){
+    const filteredByDate = {};
+
+    Object.keys(allMessages).forEach(date => {
+      if(dateKeyMatches(date, parsedDate)){
+        filteredByDate[date] = allMessages[date];
+      }
+    });
+
+    if(Object.keys(filteredByDate).length === 0){
+      chat.innerHTML = `<div class="no-result">找不到符合的日期</div>`;
+      return;
+    }
+
+    renderMessages(filteredByDate);
+    return;
+  }
+
+  const q = displayText(rawKeyword).toLowerCase();
   const filtered = {};
 
   Object.keys(allMessages).forEach(date => {
@@ -1634,8 +1666,8 @@ window.addEventListener("hashchange", () => {
 });
 
 const MESSAGE_FILES = [
-  "./messages.json",
-  "./fromm_messages.json",
+  "./messages/messages.json",
+  "./messages/fromm_messages.json",
 ];
 
 async function loadAllMessageFiles(){
