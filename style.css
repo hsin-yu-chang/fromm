@@ -388,6 +388,12 @@ button.nav-btn:active,
   font-size:14px;
 }
 
+.emoji-text{
+  font-family:"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size:14px;
+  line-height:inherit;
+}
+
 .nickname-text{
   font-weight:700;
   line-height:inherit;
