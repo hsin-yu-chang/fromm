@@ -471,16 +471,73 @@ function escapeAttr(str){
   return escapeHtml(str).replaceAll('"', '&quot;');
 }
 
-function renderMessages(data){
-  chat.innerHTML = "";
+const MESSAGE_RENDER_BATCH_SIZE = 500;
+let flatRenderItems = [];
+let renderedItemCount = 0;
+let isAppendingMessages = false;
+
+function flattenMessagesForRender(data){
+  const flat = [];
 
   Object.keys(data).forEach(date => {
-    addDateDivider(date);
-    data[date].forEach(item => addArtistMessage(item));
+    flat.push({ type:"date", date });
+
+    (data[date] || []).forEach(item => {
+      flat.push({ type:"message", date, item });
+    });
   });
+
+  return flat;
+}
+
+function appendNextMessageBatch(){
+  if(isAppendingMessages) return;
+  if(renderedItemCount >= flatRenderItems.length) return;
+
+  isAppendingMessages = true;
+
+  const fragment = document.createDocumentFragment();
+  const oldAppendChild = chat.appendChild.bind(chat);
+
+  // 暫時把 appendChild 導到 fragment，重用原本 addDateDivider / addArtistMessage
+  chat.appendChild = node => fragment.appendChild(node);
+
+  const end = Math.min(renderedItemCount + MESSAGE_RENDER_BATCH_SIZE, flatRenderItems.length);
+
+  for(let i = renderedItemCount; i < end; i++){
+    const entry = flatRenderItems[i];
+
+    if(entry.type === "date"){
+      addDateDivider(entry.date);
+    }else if(entry.type === "message"){
+      addArtistMessage(entry.item);
+    }
+  }
+
+  chat.appendChild = oldAppendChild;
+  chat.appendChild(fragment);
+
+  renderedItemCount = end;
+  isAppendingMessages = false;
+}
+
+function renderMessages(data){
+  chat.innerHTML = "";
+  flatRenderItems = flattenMessagesForRender(data);
+  renderedItemCount = 0;
+
+  appendNextMessageBatch();
 
   chat.scrollTop = 0;
 }
+
+chat.addEventListener("scroll", () => {
+  const distanceToBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight;
+
+  if(distanceToBottom < 600){
+    appendNextMessageBatch();
+  }
+});
 
 function openSearch(){
   const normalHeader = document.getElementById("headerNormal");
@@ -489,6 +546,7 @@ function openSearch(){
 
   normalHeader.style.display = "none";
   searchHeader.style.display = "flex";
+  searchHeader.classList.add("search-mode");
 
   input.value = "";
   renderMessages(allMessages);
@@ -502,9 +560,11 @@ function closeSearch(){
   const input = document.getElementById("searchInput");
 
   searchHeader.style.display = "none";
-  normalHeader.style.display = "flex";
+  searchHeader.classList.remove("search-mode");
 
+  normalHeader.style.display = "";
   input.value = "";
+
   renderMessages(allMessages);
 }
 
@@ -870,12 +930,14 @@ function normalizePage(page){
 
 function setPage(page){
   const nextPage = normalizePage(page);
-  if(location.hash.replace("#", "") !== nextPage){
-    location.hash = nextPage;
-    return;
-  }
+  history.replaceState(null, "", "#" + nextPage);
   showPage(nextPage);
 }
+
+window.addEventListener("popstate", () => {
+  history.replaceState(null, "", "#chat");
+  showPage("chat");
+});
 
 function showPage(page){
   const nextPage = normalizePage(page);
@@ -1568,9 +1630,11 @@ document.addEventListener("keydown", e => {
   item.click();
 });
 
-window.addEventListener("hashchange", () => {
-  showPage(location.hash.replace("#", "") || "chat");
-});
+
+//window.addEventListener("hashchange", () => {
+//  history.replaceState(null, "", "#chat");
+//  showPage("chat");
+//});
 
 const MESSAGE_FILES = [
   "./messages.json",
@@ -1613,8 +1677,13 @@ loadAllMessageFiles()
 
     const searchInput = document.getElementById("searchInput");
     if(searchInput){
+      let searchTimer = null;
+
       searchInput.addEventListener("input", e => {
-        searchMessages(e.target.value);
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          searchMessages(e.target.value);
+        }, 250);
       });
     }
   })

@@ -277,14 +277,14 @@ button.nav-btn:active,
   box-sizing:border-box;
   flex:1;
   min-width:0;
-  color:white;
+  color:var(--theme-input-text);
   font-size:17px;
   font-weight:400;
   cursor:text;
 }
 
 .header-search-input::placeholder{
-  color:#8f94a0;
+  color:var(--theme-placeholder-text);
 }
 
 .chat{
@@ -360,7 +360,7 @@ button.nav-btn:active,
 }
 
 .bubble{
-  max-width:min(280px, calc(100vw - 110px));
+  max-width:min(240px, calc(100vw - 110px));
   min-width:0;
   overflow:hidden;
   padding:10px 14px;
@@ -380,12 +380,12 @@ button.nav-btn:active,
 
 .original-text,
 .nickname-ko-en{
-  font-size:20px;
+  font-size:18px;
 }
 
 .trans-text,
 .nickname-cn{
-  font-size:17px;
+  font-size:14px;
 }
 
 .nickname-text{
