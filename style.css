@@ -360,7 +360,7 @@ button.nav-btn:active,
 }
 
 .bubble{
-  max-width:min(210px, calc(100vw - 110px));
+  max-width:min(205px, calc(100vw - 110px));
   min-width:0;
   overflow:hidden;
   padding:10px 14px;
