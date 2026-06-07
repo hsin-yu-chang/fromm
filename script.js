@@ -471,7 +471,8 @@ function escapeAttr(str){
   return escapeHtml(str).replaceAll('"', '&quot;');
 }
 
-const MESSAGE_RENDER_BATCH_SIZE = 500;
+
+const MESSAGE_RENDER_BATCH_SIZE = 150;
 let flatRenderItems = [];
 let renderedItemCount = 0;
 let isAppendingMessages = false;
@@ -499,7 +500,6 @@ function appendNextMessageBatch(){
   const fragment = document.createDocumentFragment();
   const oldAppendChild = chat.appendChild.bind(chat);
 
-  // 暫時把 appendChild 導到 fragment，重用原本 addDateDivider / addArtistMessage
   chat.appendChild = node => fragment.appendChild(node);
 
   const end = Math.min(renderedItemCount + MESSAGE_RENDER_BATCH_SIZE, flatRenderItems.length);
@@ -546,7 +546,6 @@ function openSearch(){
 
   normalHeader.style.display = "none";
   searchHeader.style.display = "flex";
-  searchHeader.classList.add("search-mode");
 
   input.value = "";
   renderMessages(allMessages);
@@ -560,11 +559,11 @@ function closeSearch(){
   const input = document.getElementById("searchInput");
 
   searchHeader.style.display = "none";
-  searchHeader.classList.remove("search-mode");
 
-  normalHeader.style.display = "";
+
+  normalHeader.removeAttribute("style");
+
   input.value = "";
-
   renderMessages(allMessages);
 }
 
@@ -930,14 +929,12 @@ function normalizePage(page){
 
 function setPage(page){
   const nextPage = normalizePage(page);
-  history.replaceState(null, "", "#" + nextPage);
+  if(location.hash.replace("#", "") !== nextPage){
+    location.hash = nextPage;
+    return;
+  }
   showPage(nextPage);
 }
-
-window.addEventListener("popstate", () => {
-  history.replaceState(null, "", "#chat");
-  showPage("chat");
-});
 
 function showPage(page){
   const nextPage = normalizePage(page);
@@ -1223,16 +1220,7 @@ function renderThemeSettingsPage(){
         <div class="theme-card-sub">${chatBgImage ? "已設定照片" : "選擇照片作為聊天背景"}</div>
       </div>
 
-      <div class="theme-card-actions">
-        <button class="theme-card-badge" type="button" data-action="choose-bg-image">
-          ${chatBgImage ? "更換" : "選擇"}
-        </button>
-        ${chatBgImage ? `
-          <button class="theme-card-badge clear-bg-btn" type="button" data-action="clear-bg-image">
-            清除
-          </button>
-        ` : ""}
-      </div>
+      <div class="theme-card-badge">${chatBgImage ? "已設定" : "選擇"}</div>
     </div>
 
     ${presetHtml}
@@ -1247,16 +1235,6 @@ function renderThemeSettingsPage(){
 function chooseChatBgImage(){
   const input = document.getElementById("chatBgFileInput");
   if(input) input.click();
-}
-
-function clearChatBgImage(){
-  chatBgImage = "";
-  localStorage.removeItem("frommChatBgImage");
-
-  applyThemeColor();
-  renderThemeSettingsPage();
-  updateSettingsLabels();
-  renderMessages(allMessages);
 }
 
 function setCustomBgImageFromFile(event){
@@ -1542,25 +1520,18 @@ function renderSettingsItems(){
   if(!settingsContent) return;
 
   settingsContent.innerHTML = SETTINGS_ITEMS.map(item => {
-    const attrs = ["role=\"button\"", "tabindex=\"0\""];
+    const attrs = ["class=\"setting-item\"", "role=\"button\"", "tabindex=\"0\""];
     if(item.page) attrs.push(`data-page="${escapeAttr(item.page)}"`);
     if(item.tab) attrs.push(`data-tab="${escapeAttr(item.tab)}"`);
     if(item.action) attrs.push(`data-action="${escapeAttr(item.action)}"`);
 
     const value = typeof item.value === "function" ? item.value() : item.value;
-    const hasValue = Boolean(value);
-
-    if(!hasValue){
-      attrs.push('class="setting-item setting-item-single"');
-    }else{
-      attrs.push('class="setting-item"');
-    }
 
     return `
       <div ${attrs.join(" ")}>
         <div class="setting-main">
           <div class="setting-title">${escapeHtml(item.title)}</div>
-          ${hasValue ? `<div class="setting-value">${escapeHtml(value)}</div>` : ""}
+          ${value ? `<div class="setting-value">${escapeHtml(value)}</div>` : ""}
         </div>
         <div class="setting-arrow" aria-hidden="true">›</div>
       </div>
@@ -1627,11 +1598,6 @@ document.addEventListener("click", e => {
     return;
   }
 
-  if(action === "clear-bg-image"){
-  clearChatBgImage();
-  return;
-}
-
   if(action === "edit-nickname"){
     editNickname();
     return;
@@ -1661,11 +1627,9 @@ document.addEventListener("keydown", e => {
   item.click();
 });
 
-
-//window.addEventListener("hashchange", () => {
-//  history.replaceState(null, "", "#chat");
-//  showPage("chat");
-//});
+window.addEventListener("hashchange", () => {
+  showPage(location.hash.replace("#", "") || "chat");
+});
 
 const MESSAGE_FILES = [
   "./messages.json",
@@ -1708,13 +1672,8 @@ loadAllMessageFiles()
 
     const searchInput = document.getElementById("searchInput");
     if(searchInput){
-      let searchTimer = null;
-
       searchInput.addEventListener("input", e => {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
-          searchMessages(e.target.value);
-        }, 250);
+        searchMessages(e.target.value);
       });
     }
   })
@@ -1722,3 +1681,19 @@ loadAllMessageFiles()
     console.error(err);
     chat.innerHTML = `<div class="error-msg">messages.json 讀取失敗：${escapeHtml(err.message)}<br>如果你是直接雙擊 HTML，請改用本機伺服器開啟。</div>`;
   });
+
+  // 防止手機雙指縮放、雙擊放大
+(function preventMobileZoom(){
+  document.addEventListener("gesturestart", e => e.preventDefault(), { passive:false });
+  document.addEventListener("gesturechange", e => e.preventDefault(), { passive:false });
+  document.addEventListener("gestureend", e => e.preventDefault(), { passive:false });
+
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", e => {
+    const now = Date.now();
+    if(now - lastTouchEnd <= 300){
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive:false });
+})();

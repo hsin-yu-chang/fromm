@@ -261,7 +261,7 @@ button.nav-btn:active,
   width:20px;
   height:20px;
   border-width:3px;
-  color:#c7cbd3;
+  color:var(--theme-placeholder-text);
   flex-shrink:0;
 }
 
@@ -566,18 +566,6 @@ button.nav-btn:active,
   border-bottom:0;
 }
 
-.setting-title{
-  font-size:20px;
-  line-height:1.2;
-}
-
-.setting-value{
-  height:22px;
-  margin-top:6px;
-  font-size:18px;
-  line-height:22px;
-}
-
 .setting-item:active{
   opacity:.72;
 }
@@ -597,10 +585,11 @@ button.nav-btn:active,
 }
 
 .setting-value{
-  margin-top:14px;
+  height:22px;
+  margin-top:6px;
   color:var(--theme-setting-value);
   font-size:18px;
-  line-height:1.2;
+  line-height:22px;
   font-family:"kr", "cn", system-ui, sans-serif;
   white-space:nowrap;
   overflow:hidden;
@@ -1227,4 +1216,12 @@ button.nav-btn:active,
   border:2px solid var(--theme-panel);
   background:var(--theme-panel);
   color:white;
+}
+#headerSearch .header-search-box{
+  flex:1;
+  min-width:0;
+}
+
+#headerSearch .header-search-input{
+  min-width:0;
 }
