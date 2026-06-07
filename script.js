@@ -1285,10 +1285,10 @@ function openBgDB(){
   });
 }
 
-async function saveBgImage(file){
+async function saveBgImage(dataUrl){
   const db = await openBgDB();
   const tx = db.transaction("bg", "readwrite");
-  tx.objectStore("bg").put(file, "chatBgImage");
+  tx.objectStore("bg").put(dataUrl, "chatBgImage");
   return new Promise((resolve, reject) => {
     tx.oncomplete = resolve;
     tx.onerror = e => reject(e.target.error);
@@ -1301,7 +1301,7 @@ async function loadBgImage(){
   const req = tx.objectStore("bg").get("chatBgImage");
 
   return new Promise((resolve, reject) => {
-    req.onsuccess = () => resolve(req.result || null);
+    req.onsuccess = () => resolve(req.result || "");
     req.onerror = e => reject(e.target.error);
   });
 }
@@ -1318,10 +1318,14 @@ function setCustomBgImageFromFile(event){
 
   event.target.value = "";
 
+  const objectUrl = URL.createObjectURL(file);
   const img = new Image();
+
   img.onload = async () => {
-    const maxW = 1440;
-    const maxH = 2560;
+    URL.revokeObjectURL(objectUrl);
+
+    const maxW = 1080;
+    const maxH = 1920;
 
     let w = img.width;
     let h = img.height;
@@ -1337,40 +1341,34 @@ function setCustomBgImageFromFile(event){
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, w, h);
 
-    canvas.toBlob(async blob => {
-      if(!blob){
-        alert("背景圖片處理失敗");
-        return;
-      }
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
 
-      if(chatBgObjectUrl){
-        URL.revokeObjectURL(chatBgObjectUrl);
-      }
+    chatBgObjectUrl = "";
+    chatBgImage = dataUrl;
 
-      chatBgObjectUrl = URL.createObjectURL(blob);
-      chatBgImage = "has-image";
+    try {
+      await saveBgImage(dataUrl);
+      localStorage.removeItem("frommChatBgImage");
 
-      try {
-        await saveBgImage(blob);
-        localStorage.removeItem("frommChatBgImage");
-
-        applyThemeColor();
-        renderThemeSettingsPage();
-        updateSettingsLabels();
-        renderMessages(allMessages);
-      } catch (err) {
-        alert("背景圖片儲存失敗");
-        console.error(err);
-      }
-    }, "image/jpeg", 0.85);
+      applyThemeColor();
+      renderThemeSettingsPage();
+      updateSettingsLabels();
+      renderMessages(allMessages);
+    } catch (err) {
+      alert("背景圖片儲存失敗");
+      console.error(err);
+    }
   };
 
   img.onerror = () => {
+    URL.revokeObjectURL(objectUrl);
     alert("圖片讀取失敗，請換一張圖片。");
   };
 
-  img.src = URL.createObjectURL(file);
+  img.src = objectUrl;
 }
+
+
 
 async function deleteChatBgImage(){
   try {
@@ -1800,19 +1798,11 @@ loadAllMessageFiles()
   .then(async messages => {
     allMessages = messages;
     try {
-      const savedBg = await loadBgImage();
-
-      if(savedBg){
-        chatBgObjectUrl = URL.createObjectURL(savedBg);
-        chatBgImage = "has-image";
-      }else{
-        chatBgObjectUrl = "";
-        chatBgImage = "";
-      }
-      } catch (err) {
-        console.error(err);
-        chatBgImage = "";
-      }
+      chatBgImage = await loadBgImage();
+    } catch (err) {
+      console.error(err);
+      chatBgImage = "";
+    }
 
     applyThemeColor();
     updateSettingsLabels();
