@@ -151,7 +151,8 @@ const THEME_PRESETS = {
 let themeMode = localStorage.getItem("frommThemeMode") || DEFAULT_THEME_MODE;
 let themePreset = localStorage.getItem("frommThemePreset") || DEFAULT_THEME_PRESET;
 let themeColor = localStorage.getItem("frommThemeColor") || DEFAULT_THEME_COLOR;
-let chatBgImage = localStorage.getItem("frommChatBgImage") || DEFAULT_CHAT_BG_IMAGE;
+let chatBgImage = "";
+let chatBgObjectUrl = "";
 let allMessages = {};
 let currentMediaTab = "media";
 
@@ -252,8 +253,8 @@ function applyThemeColor(){
   document.documentElement.style.setProperty("--theme-setting-arrow", palette.textColor || "#a5a8af");
 
 
-  const image = String(palette.chatBgImage || "").trim();
-  const cssImage = image ? `url("${image.replaceAll('"', '\"')}")` : "none";
+  const image = chatBgObjectUrl || String(palette.chatBgImage || "").trim();
+  const cssImage = image ? `url("${image}")` : "none";
   document.documentElement.style.setProperty("--chat-bg-image", cssImage);
 }
 
@@ -963,10 +964,7 @@ function normalizePage(page){
 
 function setPage(page){
   const nextPage = normalizePage(page);
-  if(location.hash.replace("#", "") !== nextPage){
-    location.hash = nextPage;
-    return;
-  }
+  history.replaceState(null, "", "#" + nextPage);
   showPage(nextPage);
 }
 
@@ -1246,7 +1244,7 @@ function renderThemeSettingsPage(){
   content.innerHTML = `
     <input id="chatBgFileInput" type="file" accept="image/*" style="display:none">
 
-    <div class="theme-card-item ${chatBgImage ? "active" : ""}" role="button" tabindex="0" data-action="choose-bg-image">
+    <div class="theme-card-item ${chatBgImage ? "active" : ""}" role="button" tabindex="0">
       <div class="theme-card-swatch image-swatch"></div>
 
       <div class="theme-card-main">
@@ -1254,7 +1252,10 @@ function renderThemeSettingsPage(){
         <div class="theme-card-sub">${chatBgImage ? "已設定照片" : "選擇照片作為聊天背景"}</div>
       </div>
 
-      <div class="theme-card-badge">${chatBgImage ? "已設定" : "選擇"}</div>
+      <div class="theme-card-actions">
+        ${chatBgImage ? `<button class="theme-card-badge" type="button" data-action="delete-bg-image">清除</button>` : ""}
+        <button class="theme-card-badge" type="button" data-action="choose-bg-image">設定</button>
+      </div>
     </div>
 
     ${presetHtml}
@@ -1262,7 +1263,7 @@ function renderThemeSettingsPage(){
 
   const fileInput = document.getElementById("chatBgFileInput");
   if(fileInput){
-    fileInput.addEventListener("change", setCustomBgImageFromFile);
+    fileInput.onchange = setCustomBgImageFromFile;
   }
 }
 
@@ -1271,26 +1272,91 @@ function chooseChatBgImage(){
   if(input) input.click();
 }
 
+function openBgDB(){
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("frommBgDB", 1);
+
+    request.onupgradeneeded = e => {
+      e.target.result.createObjectStore("bg");
+    };
+
+    request.onsuccess = e => resolve(e.target.result);
+    request.onerror = e => reject(e.target.error);
+  });
+}
+
+async function saveBgImage(file){
+  const db = await openBgDB();
+  const tx = db.transaction("bg", "readwrite");
+  tx.objectStore("bg").put(file, "chatBgImage");
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  });
+}
+
+async function loadBgImage(){
+  const db = await openBgDB();
+  const tx = db.transaction("bg", "readonly");
+  const req = tx.objectStore("bg").get("chatBgImage");
+
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+async function removeBgImage(){
+  const db = await openBgDB();
+  const tx = db.transaction("bg", "readwrite");
+  tx.objectStore("bg").delete("chatBgImage");
+}
+
 function setCustomBgImageFromFile(event){
   const file = event.target.files && event.target.files[0];
   if(!file) return;
 
-  const reader = new FileReader();
+  event.target.value = "";
 
-  reader.onload = e => {
-    const dataUrl = e.target.result;
+  if(chatBgObjectUrl){
+    URL.revokeObjectURL(chatBgObjectUrl);
+  }
 
-    chatBgImage = dataUrl;
+  chatBgObjectUrl = URL.createObjectURL(file);
+  chatBgImage = "has-image";
 
-    localStorage.setItem("frommChatBgImage", chatBgImage);
+  saveBgImage(file)
+    .then(() => {
+      localStorage.removeItem("frommChatBgImage");
+      applyThemeColor();
+      renderThemeSettingsPage();
+      updateSettingsLabels();
+      renderMessages(allMessages);
+    })
+    .catch(err => {
+      alert("背景圖片儲存失敗，請換小一點的圖片。");
+      console.error(err);
+    });
+}
 
-    applyThemeColor();
-    renderThemeSettingsPage();
-    updateSettingsLabels();
-    renderMessages(allMessages);
-  };
+async function deleteChatBgImage(){
+  try {
+    await removeBgImage();
+    localStorage.removeItem("frommChatBgImage");
+  } catch (err) {
+    console.error(err);
+  }
 
-  reader.readAsDataURL(file);
+  if(chatBgObjectUrl){
+    URL.revokeObjectURL(chatBgObjectUrl);
+  }
+
+  chatBgObjectUrl = "";
+  chatBgImage = "";
+  applyThemeColor();
+  renderThemeSettingsPage();
+  updateSettingsLabels();
+  renderMessages(allMessages);
 }
 
 function renderThemeCustomPage(){
@@ -1369,7 +1435,7 @@ function backFromSettingsEdit(){
 
 const SETTINGS_EDIT_CONFIG = {
   "edit-nickname": {
-    title:"編輯您的暱稱。",
+    title:"編輯您的暱稱",
     label:"暱稱",
     max:20,
     get:() => NICKNAME,
@@ -1380,7 +1446,7 @@ const SETTINGS_EDIT_CONFIG = {
     }
   },
   "edit-chat-name": {
-    title:"編輯聊天室名稱。",
+    title:"編輯聊天室名稱",
     label:"聊天室名稱",
     max:20,
     get:() => artistName,
@@ -1412,14 +1478,16 @@ const SETTINGS_EDIT_CONFIG = {
     label:"圖片路徑",
     max:200,
     get:() => chatBgImage,
-    set:value => {
+    set: async value => {
       const path = String(value || "").trim();
 
       chatBgImage = path;
 
       if(path){
-        localStorage.setItem("frommChatBgImage", chatBgImage);
+        saveBgImage(chatBgImage);
+        localStorage.removeItem("frommChatBgImage");
       }else{
+        removeBgImage();
         localStorage.removeItem("frommChatBgImage");
       }
 
@@ -1632,6 +1700,11 @@ document.addEventListener("click", e => {
     return;
   }
 
+  if(action === "delete-bg-image"){
+  deleteChatBgImage();
+  return;
+}
+
   if(action === "edit-nickname"){
     editNickname();
     return;
@@ -1659,10 +1732,6 @@ document.addEventListener("keydown", e => {
   if(e.key !== "Enter" && e.key !== " ") return;
   e.preventDefault();
   item.click();
-});
-
-window.addEventListener("hashchange", () => {
-  showPage(location.hash.replace("#", "") || "chat");
 });
 
 const MESSAGE_FILES = [
@@ -1695,8 +1764,23 @@ async function loadAllMessageFiles(){
 }
 
 loadAllMessageFiles()
-  .then(messages => {
+  .then(async messages => {
     allMessages = messages;
+    try {
+      const savedBg = await loadBgImage();
+
+      if(savedBg){
+        chatBgObjectUrl = URL.createObjectURL(savedBg);
+        chatBgImage = "has-image";
+      }else{
+        chatBgObjectUrl = "";
+        chatBgImage = "";
+      }
+      } catch (err) {
+        console.error(err);
+        chatBgImage = "";
+      }
+
     applyThemeColor();
     updateSettingsLabels();
     renderMessages(allMessages);
