@@ -121,7 +121,7 @@ const THEME_PRESETS = {
 
   black: {
     label:"黑",
-    base:"#111216",
+    base:"#ffffff",
 
     chatBg:"#ffffff",
     settingsBg:"#111216",
@@ -131,7 +131,7 @@ const THEME_PRESETS = {
     inputArea:"#111216",
     inputBg:"#333741",
 
-    artistBubble:"#f1f1f3",
+    artistBubble:"#eeeeF1",
     userBubble:"#2b2d35",
     quoteBubble:"#24262d",
 
@@ -372,7 +372,7 @@ function addArtistMessage(item){
   const quoteTrans = displayText(typeof item === "string" ? "" : item.quoteTrans);
   const mediaHtml = typeof item === "string" ? "" : getMediaHtml(item);
   const mediaKind = typeof item === "string" ? "" : getMediaKind(item);
-  const mediaOnly = mediaHtml && ["image", "video", "emoticon"].includes(mediaKind);
+  const mediaOnly = mediaHtml && ["image", "video", "emoticon", "audio"].includes(mediaKind);
 
   const quoteHtml = quote
     ? `
@@ -889,7 +889,9 @@ function ensureMediaPage(){
   mediaPage.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettingsFromMedia()">‹</button>
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettingsFromMedia()">
+          <span class="back-icon">‹</span>
+        </button>
         <div class="name" id="mediaPageTitle">照片、影片</div>
         <div class="header-actions placeholder-actions">
           <span class="nav-placeholder"></span>
@@ -1057,7 +1059,9 @@ function ensureMediaViewer(){
 
   viewer.innerHTML = `
     <div class="media-viewer-header">
-      <button class="viewer-btn viewer-back-btn" type="button" onclick="closeMediaViewer()">‹</button>
+      <button class="viewer-btn viewer-back-btn" type="button" onclick="closeMediaViewer()">
+        <span class="back-icon">‹</span>
+      </button>
       <div class="media-viewer-title" id="mediaViewerTitle"></div>
       <a id="mediaDownloadBtn" class="viewer-download" href="#" download target="_blank">下載</a>
     </div>
@@ -1143,7 +1147,9 @@ function ensureThemeSettingsPage(){
   page.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">‹</button>
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+          <span class="back-icon">‹</span>
+        </button>
         <div class="name">聊天室主題</div>
         <div class="header-actions placeholder-actions">
           <span class="nav-placeholder"></span>
@@ -1169,7 +1175,9 @@ function ensureThemeCustomPage(){
   page.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室主題" onclick="setPage('theme-settings')">‹</button>
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+          <span class="back-icon">‹</span>
+        </button>
         <div class="name">自訂背景</div>
         <div class="header-actions placeholder-actions">
           <span class="nav-placeholder"></span>
@@ -1195,7 +1203,9 @@ function ensureThemePresetPage(){
   page.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室主題" onclick="setPage('theme-settings')">‹</button>
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+          <span class="back-icon">‹</span>
+        </button>
         <div class="name">預設主題</div>
         <div class="header-actions placeholder-actions">
           <span class="nav-placeholder"></span>
@@ -1540,8 +1550,10 @@ function ensureSettingsEditPage(){
   page.className = "settings-page settings-edit-page";
   page.innerHTML = `
     <div class="header settings-edit-header">
-      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="backFromSettingsEdit()">‹</button>
-      <button class="settings-save-btn" id="settingsEditSaveBtn" type="button" onclick="saveSettingsEdit()">儲存</button>
+      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+          <span class="back-icon">‹</span>
+        </button>
+        <button class="settings-save-btn" id="settingsEditSaveBtn" type="button" onclick="saveSettingsEdit()">儲存</button>
     </div>
 
     <div class="settings-edit-content">

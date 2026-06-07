@@ -33,13 +33,13 @@
   --theme-input-bg:#333741;
   --theme-card:#2b2d35;
   --theme-quote:#24262d;
-  --theme-bubble-bg:#f1f1f3;
+  --theme-bubble-bg:#f2f2f4;
   --theme-chat-bg:#ffffff;
   --theme-audio-bg:#24262d;
   --theme-media-card:#24262d;
   --theme-accent:#8f9199;
-  --theme-text-color:#111216;
-  --theme-artist-text:#111216;
+  --theme-text-color:#3f4148;
+  --theme-artist-text:#1a1a1a;
   --theme-user-text:#ffffff;
   --theme-input-text:#ffffff;
   --theme-placeholder-text:#8f949d;
@@ -183,13 +183,28 @@ button.nav-btn{
 }
 
 button.nav-btn.back-btn{
-  width:44px;
-  height:44px;
-  min-width:44px;
-  min-height:44px;
-  max-width:44px;
-  max-height:44px;
+  width:36px;
+  height:36px;
   font-size:42px;
+}
+
+.back-icon{
+  position:relative;
+  left:-1px;
+  top:-3px;
+}
+
+.viewer-back-btn .back-icon{
+
+  left:-5px;
+  top:-3px;
+
+}
+.settings-edit-header .back-icon{
+ 
+  left:7px;
+  top:-3px;
+
 }
 
 .header-bar > .back-btn,
@@ -208,8 +223,10 @@ button.nav-btn:active,
   transform:scale(.96);
 }
 
-.menu-btn{
-  font-size:31px;
+button.nav-btn.menu-btn{
+  font-size:28px;
+  position:relative;
+  top:1px;
 }
 
 .close-btn{
@@ -534,23 +551,26 @@ button.nav-btn:active,
   height:54px;
   display:flex;
   align-items:center;
-  gap:28px;
+  gap:0;
   padding:0 28px;
   border-radius:0 28px 28px 28px;
   background:#f1f1f3;
-  color:#c8c9cf;
-  font-size:24px;
   user-select:none;
 }
 
 .audio-play{
   color:#d2d3d8;
-  font-size:24px;
+  font-size:16px;
+  line-height:1;
+  position:relative;
+  top:0px;
 }
 
 .audio-duration{
+  margin-left:auto;
   color:#c8c9cf;
-  font-size:22px;
+  font-size:15px;
+  line-height:1;
   letter-spacing:.5px;
 }
 

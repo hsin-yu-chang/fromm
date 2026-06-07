@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Fromm Mock Chat</title>
-<link rel="stylesheet" href="./style.css?v=10">
+<link rel="stylesheet" href="./style.css?v=11">
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#111216">
 </head>
@@ -13,7 +13,9 @@
 <div class="app">
   <div class="header chat-header">
     <div class="header-bar" id="headerNormal">
-      <button class="nav-btn back-btn" type="button" aria-label="返回">‹</button>
+      <button class="nav-btn back-btn" type="button" aria-label="返回">
+        <span class="back-icon">‹</span>
+      </button>
       <div class="name" id="artistName">&nbsp;선우</div>
 
       <div class="header-actions">
@@ -25,7 +27,9 @@
     </div>
 
     <div class="header-bar search-mode" id="headerSearch" style="display:none;">
-      <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="closeSearch()">‹</button>
+      <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="closeSearch()">
+        <span class="back-icon">‹</span>
+      </button>
 
       <div class="header-search-box">
         <span class="icon-search search-box-icon" aria-hidden="true"></span>
@@ -47,7 +51,9 @@
 <div id="settingsPage" class="settings-page">
   <div class="header settings-header">
     <div class="header-bar">
-      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="showChat()">‹</button>
+      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="showChat()">
+        <span class="back-icon">‹</span>
+      </button>
       <div class="name">聊天室設定</div>
       <div class="header-actions placeholder-actions">
         <span class="nav-placeholder"></span>
