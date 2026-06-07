@@ -1223,7 +1223,16 @@ function renderThemeSettingsPage(){
         <div class="theme-card-sub">${chatBgImage ? "已設定照片" : "選擇照片作為聊天背景"}</div>
       </div>
 
-      <div class="theme-card-badge">${chatBgImage ? "已設定" : "選擇"}</div>
+      <div class="theme-card-actions">
+        <button class="theme-card-badge" type="button" data-action="choose-bg-image">
+          ${chatBgImage ? "更換" : "選擇"}
+        </button>
+        ${chatBgImage ? `
+          <button class="theme-card-badge clear-bg-btn" type="button" data-action="clear-bg-image">
+            清除
+          </button>
+        ` : ""}
+      </div>
     </div>
 
     ${presetHtml}
@@ -1238,6 +1247,16 @@ function renderThemeSettingsPage(){
 function chooseChatBgImage(){
   const input = document.getElementById("chatBgFileInput");
   if(input) input.click();
+}
+
+function clearChatBgImage(){
+  chatBgImage = "";
+  localStorage.removeItem("frommChatBgImage");
+
+  applyThemeColor();
+  renderThemeSettingsPage();
+  updateSettingsLabels();
+  renderMessages(allMessages);
 }
 
 function setCustomBgImageFromFile(event){
@@ -1523,18 +1542,25 @@ function renderSettingsItems(){
   if(!settingsContent) return;
 
   settingsContent.innerHTML = SETTINGS_ITEMS.map(item => {
-    const attrs = ["class=\"setting-item\"", "role=\"button\"", "tabindex=\"0\""];
+    const attrs = ["role=\"button\"", "tabindex=\"0\""];
     if(item.page) attrs.push(`data-page="${escapeAttr(item.page)}"`);
     if(item.tab) attrs.push(`data-tab="${escapeAttr(item.tab)}"`);
     if(item.action) attrs.push(`data-action="${escapeAttr(item.action)}"`);
 
     const value = typeof item.value === "function" ? item.value() : item.value;
+    const hasValue = Boolean(value);
+
+    if(!hasValue){
+      attrs.push('class="setting-item setting-item-single"');
+    }else{
+      attrs.push('class="setting-item"');
+    }
 
     return `
       <div ${attrs.join(" ")}>
         <div class="setting-main">
           <div class="setting-title">${escapeHtml(item.title)}</div>
-          ${value ? `<div class="setting-value">${escapeHtml(value)}</div>` : ""}
+          ${hasValue ? `<div class="setting-value">${escapeHtml(value)}</div>` : ""}
         </div>
         <div class="setting-arrow" aria-hidden="true">›</div>
       </div>
@@ -1600,6 +1626,11 @@ document.addEventListener("click", e => {
     chooseChatBgImage();
     return;
   }
+
+  if(action === "clear-bg-image"){
+  clearChatBgImage();
+  return;
+}
 
   if(action === "edit-nickname"){
     editNickname();

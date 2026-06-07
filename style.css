@@ -557,13 +557,25 @@ button.nav-btn:active,
 }
 
 .setting-item{
-  min-height:92px;
+  height:72px;
   display:grid;
   grid-template-columns:minmax(0, 1fr) 34px;
   align-items:center;
   column-gap:18px;
-  padding:18px 0;
-  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:0;
+  border-bottom:0;
+}
+
+.setting-title{
+  font-size:20px;
+  line-height:1.2;
+}
+
+.setting-value{
+  height:22px;
+  margin-top:6px;
+  font-size:18px;
+  line-height:22px;
 }
 
 .setting-item:active{
@@ -572,7 +584,9 @@ button.nav-btn:active,
 
 .setting-main{
   min-width:0;
-  grid-column:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
 }
 
 .setting-title{
@@ -1197,4 +1211,20 @@ button.nav-btn:active,
   .header-search-box{
     height:42px;
   }
+}
+
+.theme-card-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.theme-card-actions .theme-card-badge{
+  min-width:auto;
+  height:34px;
+  padding:0 14px;
+  border-radius:999px;
+  border:2px solid var(--theme-panel);
+  background:var(--theme-panel);
+  color:white;
 }
