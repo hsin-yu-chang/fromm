@@ -889,7 +889,7 @@ function ensureMediaPage(){
   mediaPage.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettingsFromMedia()">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="goBackFromPage('media')">
           <span class="back-icon">‹</span>
         </button>
         <div class="name" id="mediaPageTitle">照片、影片</div>
@@ -959,16 +959,81 @@ function renderMediaPage(tab = currentMediaTab){
   mediaContent.innerHTML = html || `<div class="media-empty">${emptyText}</div>`;
 }
 
+const PAGE_LIST = [
+  "chat",
+  "settings",
+  "media",
+  "edit-nickname",
+  "edit-chat-name",
+  "edit-theme-color",
+  "edit-theme-image",
+  "theme-settings",
+  "theme-custom",
+  "theme-presets"
+];
+
+// 每一頁按「返回」後要去哪裡，之後統一改這裡。
+const BACK_TARGETS = {
+  settings: "chat",
+  media: "settings",
+  "theme-settings": "settings",
+  "theme-custom": "theme-settings",
+  "theme-presets": "theme-settings",
+  "edit-nickname": "settings",
+  "edit-chat-name": "settings",
+  "edit-theme-color": "theme-custom",
+  "edit-theme-image": "theme-custom"
+};
+
+let currentPage = "chat";
+let ignoreNextPopState = false;
+
 function normalizePage(page){
   const value = String(page || "chat").replace("#", "").trim();
-  return ["chat", "settings", "media", "edit-nickname", "edit-chat-name", "edit-theme-color", "edit-theme-image", "theme-settings", "theme-custom", "theme-presets"].includes(value) ? value : "chat";
+  return PAGE_LIST.includes(value) ? value : "chat";
 }
 
-function setPage(page){
+function getCurrentPage(){
+  return currentPage || normalizePage(location.hash.replace("#", "") || "chat");
+}
+
+function setPage(page, options = {}){
   const nextPage = normalizePage(page);
-  history.replaceState(null, "", "#" + nextPage);
+  const method = options.replace ? "replaceState" : "pushState";
+
+  currentPage = nextPage;
+  history[method]({ page: nextPage }, "", "#" + nextPage);
   showPage(nextPage);
 }
+
+function goBackFromPage(page = getCurrentPage()){
+  const fromPage = normalizePage(page);
+  const targetPage = BACK_TARGETS[fromPage] || "chat";
+  setPage(targetPage);
+}
+
+window.addEventListener("popstate", () => {
+  if(ignoreNextPopState){
+    ignoreNextPopState = false;
+    return;
+  }
+
+  const fromPage = getCurrentPage();
+
+  // 在聊天室按手機/瀏覽器返回鍵時，保留瀏覽器原本行為。
+  if(fromPage === "chat"){
+    currentPage = normalizePage(location.hash.replace("#", "") || "chat");
+    showPage(currentPage);
+    return;
+  }
+
+  const targetPage = BACK_TARGETS[fromPage] || "chat";
+  currentPage = targetPage;
+
+  ignoreNextPopState = true;
+  history.pushState({ page: targetPage }, "", "#" + targetPage);
+  showPage(targetPage);
+});
 
 function showPage(page){
   const nextPage = normalizePage(page);
@@ -1038,7 +1103,7 @@ function showMediaPage(tab = "media"){
 }
 
 function showSettingsFromMedia(){
-  setPage("settings");
+  goBackFromPage("media");
 }
 
 function showSettings(){
@@ -1063,7 +1128,7 @@ function ensureMediaViewer(){
         <span class="back-icon">‹</span>
       </button>
       <div class="media-viewer-title" id="mediaViewerTitle"></div>
-      <a id="mediaDownloadBtn" class="viewer-download" href="#" download target="_blank">下載</a>
+      <button id="mediaDownloadBtn" class="viewer-download" type="button" onclick="downloadMediaFile(this.dataset.url)" data-url="">下載</button>
     </div>
 
     <div class="media-viewer-body" id="mediaViewerBody"></div>
@@ -1084,7 +1149,7 @@ function openMediaViewer(url, type, time = ""){
   viewer.classList.toggle("audio-viewer-mode", type === "audio");
 
   if(downloadBtn){
-    downloadBtn.href = url;
+    downloadBtn.dataset.url = url;
     downloadBtn.style.display = type === "audio" ? "none" : "block";
   }
 
@@ -1122,6 +1187,27 @@ function openMediaViewer(url, type, time = ""){
     return;
   }
 }
+function downloadMediaFile(url){
+  if(!url) return;
+  fetch(url)
+    .then(res => {
+      if(!res.ok) throw new Error("下載失敗");
+      return res.blob();
+    })
+    .then(blob => {
+      const ext = (url.split("?")[0].match(/\.([a-zA-Z0-9]+)$/) || [])[1] || "";
+      const filename = "download" + (ext ? "." + ext : "");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    })
+    .catch(err => {
+      console.error(err);
+      alert("下載失敗，請稍後再試。");
+    });
+}
 function closeMediaViewer(){
   const viewer = document.getElementById("mediaViewer");
   const body = document.getElementById("mediaViewerBody");
@@ -1147,7 +1233,7 @@ function ensureThemeSettingsPage(){
   page.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="goBackFromPage()">
           <span class="back-icon">‹</span>
         </button>
         <div class="name">聊天室主題</div>
@@ -1175,7 +1261,7 @@ function ensureThemeCustomPage(){
   page.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="goBackFromPage()">
           <span class="back-icon">‹</span>
         </button>
         <div class="name">自訂背景</div>
@@ -1203,7 +1289,7 @@ function ensureThemePresetPage(){
   page.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="goBackFromPage()">
           <span class="back-icon">‹</span>
         </button>
         <div class="name">預設主題</div>
@@ -1467,11 +1553,7 @@ function applyPresetTheme(key){
 }
 
 function backFromSettingsEdit(){
-  if(currentSettingsEditType === "edit-theme-color" || currentSettingsEditType === "edit-theme-image"){
-    setPage("theme-custom");
-    return;
-  }
-  showSettings();
+  goBackFromPage(currentSettingsEditType || getCurrentPage());
 }
 
 const SETTINGS_EDIT_CONFIG = {
@@ -1550,7 +1632,7 @@ function ensureSettingsEditPage(){
   page.className = "settings-page settings-edit-page";
   page.innerHTML = `
     <div class="header settings-edit-header">
-      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室設定" onclick="showSettings()">
+      <button class="nav-btn back-btn" type="button" aria-label="返回上一頁" onclick="backFromSettingsEdit()">
           <span class="back-icon">‹</span>
         </button>
         <button class="settings-save-btn" id="settingsEditSaveBtn" type="button" onclick="saveSettingsEdit()">儲存</button>
@@ -1821,6 +1903,8 @@ loadAllMessageFiles()
     renderMessages(allMessages);
 
     const initialPage = normalizePage(location.hash.replace("#", "") || "chat");
+    currentPage = initialPage;
+    history.replaceState({ page: initialPage }, "", "#" + initialPage);
     showPage(initialPage);
 
     const searchInput = document.getElementById("searchInput");
