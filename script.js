@@ -121,7 +121,7 @@ const THEME_PRESETS = {
 
   black: {
     label:"黑",
-    base:"#ffffff",
+    base:"#111216",
 
     chatBg:"#ffffff",
     settingsBg:"#111216",
