@@ -986,7 +986,18 @@ const BACK_TARGETS = {
 };
 
 let currentPage = "chat";
-let ignoreNextPopState = false;
+
+function isMediaViewerOpen(){
+  const viewer = document.getElementById("mediaViewer");
+  return !!viewer && viewer.style.display !== "none" && viewer.style.display !== "";
+}
+
+function restoreCurrentPageState(){
+  const page = normalizePage(currentPage || location.hash.replace("#", "") || "chat");
+  currentPage = page;
+  history.pushState({ page }, "", "#" + page);
+  showPage(page);
+}
 
 function normalizePage(page){
   const value = String(page || "chat").replace("#", "").trim();
@@ -1013,26 +1024,24 @@ function goBackFromPage(page = getCurrentPage()){
 }
 
 window.addEventListener("popstate", () => {
-  if(ignoreNextPopState){
-    ignoreNextPopState = false;
+  // 手機實體返回鍵 / 瀏覽器返回鍵：
+  // 1. 如果正在看圖片 / 影片 / 語音預覽，先關閉預覽，停在原本的照片、影片頁。
+  // 2. 否則才使用跟左上角返回按鈕同一套 BACK_TARGETS 規則。
+  const fromPage = getCurrentPage();
+
+  if(isMediaViewerOpen()){
+    closeMediaViewer();
+    restoreCurrentPageState();
     return;
   }
 
-  const fromPage = getCurrentPage();
-
-  // 在聊天室按手機/瀏覽器返回鍵時，保留瀏覽器原本行為。
   if(fromPage === "chat"){
     currentPage = normalizePage(location.hash.replace("#", "") || "chat");
     showPage(currentPage);
     return;
   }
 
-  const targetPage = BACK_TARGETS[fromPage] || "chat";
-  currentPage = targetPage;
-
-  ignoreNextPopState = true;
-  history.pushState({ page: targetPage }, "", "#" + targetPage);
-  showPage(targetPage);
+  goBackFromPage(fromPage);
 });
 
 function showPage(page){
