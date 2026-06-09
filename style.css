@@ -1296,3 +1296,48 @@ button.nav-btn.menu-btn{
   object-fit:contain;
   display:block;
 }
+
+/* === 手機版媒體預覽滑動修正：避免露出前後張 === */
+#mediaViewerBody{
+  position:relative !important;
+  width:100vw !important;
+  height:calc(100vh - 56px) !important;
+  overflow:hidden !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+
+.media-viewer-track{
+  width:100vw !important;
+  height:100% !important;
+  display:flex !important;
+  gap:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  will-change:transform !important;
+}
+
+.media-viewer-slide{
+  width:100vw !important;
+  min-width:100vw !important;
+  max-width:100vw !important;
+  height:100% !important;
+  flex:0 0 100vw !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:hidden !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+
+.media-viewer-slide .viewer-media{
+  width:100vw !important;
+  height:100% !important;
+  max-width:100vw !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  display:block !important;
+}
