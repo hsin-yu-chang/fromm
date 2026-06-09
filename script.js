@@ -155,6 +155,9 @@ let chatBgImage = "";
 let chatBgObjectUrl = "";
 let allMessages = {};
 let currentMediaTab = "media";
+let currentMediaViewerItems = [];
+let currentMediaViewerIndex = -1;
+let mediaViewerSwipeBound = false;
 
 function normalizeHexColor(value){
   let color = String(value || "").trim();
@@ -827,17 +830,20 @@ function getVideoThumbUrl(url){
   return str;
 }
 
-function getMediaPageItemHtml(item){
+function getMediaPageItemHtml(item, viewerIndex = -1){
   const kind = getMediaKind(item);
-  const url = escapeAttr(item.url);
   const rawUrl = escapeAttr(item.url);
   const thumbUrl = escapeAttr(getThumbUrl(item.url));
   const time = formatTime(item.time);
+  const openAction = viewerIndex >= 0
+    ? `openMediaViewerByIndex(${viewerIndex})`
+    : `openMediaViewer('${rawUrl}', '${escapeAttr(kind)}', '${escapeAttr(time || "")}')`;
 
   if(kind === "audio"){
     return `
       <div class="media-card audio-thumb-card"
-           onclick="openMediaViewer('${rawUrl}', 'audio', '${escapeAttr(time || "")}')">
+           data-viewer-index="${viewerIndex}"
+           onclick="${openAction}">
         <div class="audio-thumb-avatar"></div>
 
         <div class="audio-thumb-play"></div>
@@ -851,7 +857,8 @@ function getMediaPageItemHtml(item){
 
     return `
       <div class="media-card"
-           onclick="openMediaViewer('${rawUrl}', 'video')">
+           data-viewer-index="${viewerIndex}"
+           onclick="${openAction}">
         <img src="${videoThumbUrl}" loading="lazy" decoding="async">
         <div class="media-play-overlay">
           <div class="media-play-icon">▶</div>
@@ -863,7 +870,8 @@ function getMediaPageItemHtml(item){
 
   return `
     <div class="media-card"
-         onclick="openMediaViewer('${rawUrl}', 'image')">
+         data-viewer-index="${viewerIndex}"
+         onclick="${openAction}">
       <img src="${thumbUrl}" loading="lazy" decoding="async">
       ${time ? `<span class="media-time">${escapeHtml(time)}</span>` : ""}
     </div>
@@ -934,6 +942,8 @@ function renderMediaPage(tab = currentMediaTab){
   const gridClass = currentMediaTab === "audio" ? "media-grid media-grid-audio" : "media-grid";
 
   let html = "";
+  currentMediaViewerItems = [];
+  currentMediaViewerIndex = -1;
 
   dates.forEach(date => {
     const items = (allMessages[date] || []).filter(item => {
@@ -945,11 +955,24 @@ function renderMediaPage(tab = currentMediaTab){
 
     if(!items.length) return;
 
+    const itemHtml = items.map(item => {
+      const kind = getMediaKind(item);
+      const viewerIndex = currentMediaViewerItems.length;
+      currentMediaViewerItems.push({
+        item,
+        kind,
+        date,
+        time: formatTime(item.time)
+      });
+
+      return getMediaPageItemHtml(item, viewerIndex);
+    }).join("");
+
     html += `
       <section class="media-date-section">
         <div class="media-date-title">${escapeHtml(formatDateLabel(date))}</div>
         <div class="${gridClass}">
-          ${items.map(getMediaPageItemHtml).join("")}
+          ${itemHtml}
         </div>
       </section>
     `;
@@ -992,13 +1015,6 @@ function isMediaViewerOpen(){
   return !!viewer && viewer.style.display !== "none" && viewer.style.display !== "";
 }
 
-function restoreCurrentPageState(){
-  const page = normalizePage(currentPage || location.hash.replace("#", "") || "chat");
-  currentPage = page;
-  history.pushState({ page }, "", "#" + page);
-  showPage(page);
-}
-
 function normalizePage(page){
   const value = String(page || "chat").replace("#", "").trim();
   return PAGE_LIST.includes(value) ? value : "chat";
@@ -1008,36 +1024,66 @@ function getCurrentPage(){
   return currentPage || normalizePage(location.hash.replace("#", "") || "chat");
 }
 
+function writeHistoryPage(page, replace = false, extraState = {}){
+  const nextPage = normalizePage(page);
+  const method = replace ? "replaceState" : "pushState";
+  history[method]({ page: nextPage, ...extraState }, "", "#" + nextPage);
+}
+
+function initHistoryPage(page){
+  const initialPage = normalizePage(page);
+  currentPage = initialPage;
+
+  // 手機返回鍵如果剛好在第一筆歷史紀錄，瀏覽器會直接離開 PWA / 網頁，
+  // 所以啟動時先補一筆同頁面的保護紀錄，讓第一次返回一定會被 popstate 接住。
+  writeHistoryPage(initialPage, true, { init: true });
+  writeHistoryPage(initialPage, false, { guard: true });
+}
+
+function keepInsideCurrentPage(){
+  const page = getCurrentPage();
+  writeHistoryPage(page, false, { guard: true });
+}
+
 function setPage(page, options = {}){
   const nextPage = normalizePage(page);
-  const method = options.replace ? "replaceState" : "pushState";
-
   currentPage = nextPage;
-  history[method]({ page: nextPage }, "", "#" + nextPage);
+
+  // APP 內部換頁一律用 replace，不再 push 新歷史紀錄。
+  // 這樣左上角返回後，手機返回鍵不會把剛剛經過的頁面又倒放一次。
+  writeHistoryPage(nextPage, true, { appPage: true });
   showPage(nextPage);
 }
 
 function goBackFromPage(page = getCurrentPage()){
+  if(isMediaViewerOpen()){
+    closeMediaViewer();
+    keepInsideCurrentPage();
+    return;
+  }
+
   const fromPage = normalizePage(page);
   const targetPage = BACK_TARGETS[fromPage] || "chat";
-  setPage(targetPage);
+
+  // 返回是「回到指定頁」，不要再新增一堆瀏覽器歷史，避免手機返回鍵亂跳。
+  setPage(targetPage, { replace: true });
 }
 
 window.addEventListener("popstate", () => {
   // 手機實體返回鍵 / 瀏覽器返回鍵：
-  // 1. 如果正在看圖片 / 影片 / 語音預覽，先關閉預覽，停在原本的照片、影片頁。
-  // 2. 否則才使用跟左上角返回按鈕同一套 BACK_TARGETS 規則。
+  // 先補回目前頁面的保護紀錄，避免某些情況直接跳出 PWA / 網頁。
+  // 接著執行跟左上角返回按鈕一樣的邏輯。
   const fromPage = getCurrentPage();
+  keepInsideCurrentPage();
 
   if(isMediaViewerOpen()){
     closeMediaViewer();
-    restoreCurrentPageState();
+    showPage(fromPage);
     return;
   }
 
   if(fromPage === "chat"){
-    currentPage = normalizePage(location.hash.replace("#", "") || "chat");
-    showPage(currentPage);
+    showPage("chat");
     return;
   }
 
@@ -1144,16 +1190,130 @@ function ensureMediaViewer(){
   `;
 
   document.body.appendChild(viewer);
+  setupMediaViewerSwipe(viewer);
   return viewer;
 }
 
+function openMediaViewerByIndex(index){
+  const nextIndex = Number(index);
+  if(!Number.isInteger(nextIndex)) return;
+  if(nextIndex < 0 || nextIndex >= currentMediaViewerItems.length) return;
+
+  const entry = currentMediaViewerItems[nextIndex];
+  if(!entry || !entry.item || !entry.item.url) return;
+
+  currentMediaViewerIndex = nextIndex;
+  openMediaViewer(entry.item.url, entry.kind, entry.time || formatTime(entry.item.time));
+}
+
+function showPrevMediaViewerItem(){
+  if(currentMediaViewerItems.length <= 1) return;
+  const nextIndex = (currentMediaViewerIndex - 1 + currentMediaViewerItems.length) % currentMediaViewerItems.length;
+  openMediaViewerByIndex(nextIndex);
+}
+
+function showNextMediaViewerItem(){
+  if(currentMediaViewerItems.length <= 1) return;
+  const nextIndex = (currentMediaViewerIndex + 1) % currentMediaViewerItems.length;
+  openMediaViewerByIndex(nextIndex);
+}
+
+function setupMediaViewerSwipe(viewer){
+  if(!viewer || mediaViewerSwipeBound) return;
+  mediaViewerSwipeBound = true;
+
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let tracking = false;
+  let pointerId = null;
+
+  viewer.style.touchAction = "pan-y";
+
+  viewer.addEventListener("pointerdown", e => {
+    if(!isMediaViewerOpen()) return;
+    if(e.pointerType === "mouse" && e.button !== 0) return;
+    if(e.target.closest?.("button")) return;
+
+    tracking = true;
+    pointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTime = Date.now();
+
+    try {
+      viewer.setPointerCapture(pointerId);
+    } catch (err) {}
+  }, true);
+
+  viewer.addEventListener("pointerup", e => {
+    if(!tracking) return;
+    if(pointerId !== null && e.pointerId !== pointerId) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const elapsed = Date.now() - startTime;
+
+    tracking = false;
+    pointerId = null;
+
+    const horizontalEnough = Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy) * 1.25;
+    const quickSwipe = elapsed <= 900;
+
+    if(horizontalEnough && quickSwipe){
+      e.preventDefault();
+      e.stopPropagation();
+
+      if(dx < 0){
+        showNextMediaViewerItem();
+      }else{
+        showPrevMediaViewerItem();
+      }
+    }
+  }, true);
+
+  viewer.addEventListener("pointercancel", () => {
+    tracking = false;
+    pointerId = null;
+  }, true);
+
+  document.addEventListener("keydown", e => {
+    if(!isMediaViewerOpen()) return;
+
+    if(e.key === "ArrowLeft"){
+      e.preventDefault();
+      showPrevMediaViewerItem();
+    }
+
+    if(e.key === "ArrowRight"){
+      e.preventDefault();
+      showNextMediaViewerItem();
+    }
+  });
+}
+
 function openMediaViewer(url, type, time = ""){
+  const matchedIndex = currentMediaViewerItems.findIndex(entry => {
+    return entry && entry.item && entry.item.url === url && entry.kind === type;
+  });
+  if(matchedIndex >= 0){
+    currentMediaViewerIndex = matchedIndex;
+  }
+
+  const viewerAlreadyOpen = isMediaViewerOpen();
   const viewer = ensureMediaViewer();
   const viewerBody = document.getElementById("mediaViewerBody");
   const titleEl = document.getElementById("mediaViewerTitle");
   const downloadBtn = document.getElementById("mediaDownloadBtn");
 
+  if(!viewerAlreadyOpen){
+    // 圖片 / 影片 / 語音預覽是浮層，不是一般頁面；
+    // 這裡補一筆同頁歷史，手機返回鍵才會先關閉預覽，不會直接離開。
+    writeHistoryPage(getCurrentPage(), false, { viewer: true });
+  }
+
   viewer.dataset.type = type;
+  viewer.dataset.index = String(currentMediaViewerIndex);
   viewer.style.display = "flex";
   viewer.classList.toggle("audio-viewer-mode", type === "audio");
 
@@ -1226,7 +1386,9 @@ function closeMediaViewer(){
     viewer.style.display = "none";
     viewer.classList.remove("audio-viewer-mode");
     delete viewer.dataset.type;
+    delete viewer.dataset.index;
   }
+  currentMediaViewerIndex = -1;
 }
 
 
@@ -1912,8 +2074,7 @@ loadAllMessageFiles()
     renderMessages(allMessages);
 
     const initialPage = normalizePage(location.hash.replace("#", "") || "chat");
-    currentPage = initialPage;
-    history.replaceState({ page: initialPage }, "", "#" + initialPage);
+    initHistoryPage(initialPage);
     showPage(initialPage);
 
     const searchInput = document.getElementById("searchInput");
