@@ -158,6 +158,7 @@ let currentMediaTab = "media";
 let currentMediaViewerItems = [];
 let currentMediaViewerIndex = -1;
 let mediaViewerSwipeBound = false;
+let mediaViewerAnimating = false;
 
 function normalizeHexColor(value){
   let color = String(value || "").trim();
@@ -386,7 +387,6 @@ function addArtistMessage(item){
           ${quoteTrans ? `
             <div class="bubble-divider"></div>
             <div>${escapeHtml(quoteTrans)}</div>
-            <!--<div class="translation-label">Translated by Papago</div>-->
           ` : ""}
         </div>
       </div>
@@ -1209,13 +1209,100 @@ function openMediaViewerByIndex(index){
 function showPrevMediaViewerItem(){
   if(currentMediaViewerItems.length <= 1) return;
   const nextIndex = (currentMediaViewerIndex - 1 + currentMediaViewerItems.length) % currentMediaViewerItems.length;
-  openMediaViewerByIndex(nextIndex);
+  slideMediaViewerToIndex(nextIndex, "prev");
 }
 
 function showNextMediaViewerItem(){
   if(currentMediaViewerItems.length <= 1) return;
   const nextIndex = (currentMediaViewerIndex + 1) % currentMediaViewerItems.length;
-  openMediaViewerByIndex(nextIndex);
+  slideMediaViewerToIndex(nextIndex, "next");
+}
+
+function getMediaViewerContentHtml(url, type){
+  if(type === "audio"){
+    return `
+      <div class="audio-viewer-page">
+        <div class="audio-viewer-center">
+          <div class="audio-viewer-avatar"></div>
+          <div class="audio-viewer-name">${escapeHtml(artistName)}</div>
+        </div>
+
+        <div class="audio-viewer-player">
+          <audio controls autoplay preload="metadata" src="${escapeAttr(url)}"></audio>
+        </div>
+      </div>
+    `;
+  }
+
+  if(type === "image"){
+    return `<img class="viewer-media" src="${escapeAttr(url)}">`;
+  }
+
+  if(type === "video"){
+    return `<video class="viewer-media" controls autoplay preload="metadata" src="${escapeAttr(url)}"></video>`;
+  }
+
+  return "";
+}
+
+function setMediaViewerContent(url, type){
+  const viewerBody = document.getElementById("mediaViewerBody");
+  if(!viewerBody) return;
+  viewerBody.innerHTML = getMediaViewerContentHtml(url, type);
+  viewerBody.style.transform = "translateX(0)";
+  viewerBody.style.transition = "";
+}
+
+function slideMediaViewerToIndex(nextIndex, direction){
+  if(mediaViewerAnimating) return;
+  if(nextIndex < 0 || nextIndex >= currentMediaViewerItems.length) return;
+
+  const viewerBody = document.getElementById("mediaViewerBody");
+  if(!viewerBody) return;
+
+  const entry = currentMediaViewerItems[nextIndex];
+  if(!entry || !entry.item || !entry.item.url) return;
+
+  mediaViewerAnimating = true;
+
+  const outX = direction === "next" ? "-100%" : "100%";
+  const inX = direction === "next" ? "100%" : "-100%";
+
+  viewerBody.style.transition = "transform 220ms ease";
+  viewerBody.style.transform = `translateX(${outX})`;
+
+  setTimeout(() => {
+    currentMediaViewerIndex = nextIndex;
+
+    const viewer = document.getElementById("mediaViewer");
+    const downloadBtn = document.getElementById("mediaDownloadBtn");
+
+    if(viewer){
+      viewer.dataset.type = entry.kind;
+      viewer.dataset.index = String(currentMediaViewerIndex);
+      viewer.classList.toggle("audio-viewer-mode", entry.kind === "audio");
+    }
+
+    if(downloadBtn){
+      downloadBtn.dataset.url = entry.item.url;
+      downloadBtn.style.display = entry.kind === "audio" ? "none" : "block";
+    }
+
+    viewerBody.style.transition = "none";
+    viewerBody.style.transform = `translateX(${inX})`;
+    viewerBody.innerHTML = getMediaViewerContentHtml(entry.item.url, entry.kind);
+
+    requestAnimationFrame(() => {
+      viewerBody.style.transition = "transform 220ms ease";
+      viewerBody.style.transform = "translateX(0)";
+    });
+
+    setTimeout(() => {
+      viewerBody.style.transition = "";
+      viewerBody.style.transform = "";
+      mediaViewerAnimating = false;
+    }, 240);
+  }, 220);
 }
 
 function setupMediaViewerSwipe(viewer){
@@ -1227,23 +1314,51 @@ function setupMediaViewerSwipe(viewer){
   let startTime = 0;
   let tracking = false;
   let pointerId = null;
+  let moved = false;
 
   viewer.style.touchAction = "pan-y";
 
   viewer.addEventListener("pointerdown", e => {
     if(!isMediaViewerOpen()) return;
+    if(mediaViewerAnimating) return;
     if(e.pointerType === "mouse" && e.button !== 0) return;
     if(e.target.closest?.("button")) return;
 
+    const viewerBody = document.getElementById("mediaViewerBody");
+    if(!viewerBody) return;
+
     tracking = true;
+    moved = false;
     pointerId = e.pointerId;
     startX = e.clientX;
     startY = e.clientY;
     startTime = Date.now();
 
+    viewerBody.style.transition = "none";
+    viewerBody.style.transform = "translateX(0)";
+
     try {
       viewer.setPointerCapture(pointerId);
     } catch (err) {}
+  }, true);
+
+  viewer.addEventListener("pointermove", e => {
+    if(!tracking) return;
+    if(pointerId !== null && e.pointerId !== pointerId) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const viewerBody = document.getElementById("mediaViewerBody");
+    if(!viewerBody) return;
+
+    if(Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)){
+      moved = true;
+      e.preventDefault();
+      e.stopPropagation();
+
+      // 跟著手指移動，乘 0.9 讓它比較穩
+      viewerBody.style.transform = `translateX(${dx * 0.9}px)`;
+    }
   }, true);
 
   viewer.addEventListener("pointerup", e => {
@@ -1253,6 +1368,7 @@ function setupMediaViewerSwipe(viewer){
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     const elapsed = Date.now() - startTime;
+    const viewerBody = document.getElementById("mediaViewerBody");
 
     tracking = false;
     pointerId = null;
@@ -1269,12 +1385,32 @@ function setupMediaViewerSwipe(viewer){
       }else{
         showPrevMediaViewerItem();
       }
+      return;
+    }
+
+    // 沒滑夠距離就彈回原位
+    if(viewerBody && moved){
+      viewerBody.style.transition = "transform 180ms ease";
+      viewerBody.style.transform = "translateX(0)";
+      setTimeout(() => {
+        viewerBody.style.transition = "";
+      }, 190);
     }
   }, true);
 
   viewer.addEventListener("pointercancel", () => {
+    const viewerBody = document.getElementById("mediaViewerBody");
+
     tracking = false;
     pointerId = null;
+
+    if(viewerBody){
+      viewerBody.style.transition = "transform 180ms ease";
+      viewerBody.style.transform = "translateX(0)";
+      setTimeout(() => {
+        viewerBody.style.transition = "";
+      }, 190);
+    }
   }, true);
 
   document.addEventListener("keydown", e => {
@@ -1326,35 +1462,7 @@ function openMediaViewer(url, type, time = ""){
     titleEl.textContent = type === "audio" ? "" : "";
   }
 
-  if(type === "audio"){
-    viewerBody.innerHTML = `
-      <div class="audio-viewer-page">
-        <div class="audio-viewer-center">
-          <div class="audio-viewer-avatar"></div>
-          <div class="audio-viewer-name">${escapeHtml(artistName)}</div>
-        </div>
-
-        <div class="audio-viewer-player">
-          <audio controls autoplay preload="metadata" src="${escapeAttr(url)}"></audio>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  if(type === "image"){
-    viewerBody.innerHTML = `
-      <img class="viewer-media" src="${escapeAttr(url)}">
-    `;
-    return;
-  }
-
-  if(type === "video"){
-    viewerBody.innerHTML = `
-      <video class="viewer-media" controls autoplay preload="metadata" src="${escapeAttr(url)}"></video>
-    `;
-    return;
-  }
+  setMediaViewerContent(url, type);
 }
 function downloadMediaFile(url){
   if(!url) return;
