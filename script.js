@@ -398,7 +398,7 @@ function addArtistMessage(item){
       ? `
         <div class="bubble-divider"></div>
         <div class="msg-text trans-text">${formatMessageText(typeof item === "string" ? "" : item.trans)}</div>
-        <div class="translation-label">Translated by Papago</div>
+
       `
       : "";
 
@@ -1207,15 +1207,11 @@ function openMediaViewerByIndex(index){
 }
 
 function showPrevMediaViewerItem(){
-  if(currentMediaViewerItems.length <= 1) return;
-  const nextIndex = (currentMediaViewerIndex - 1 + currentMediaViewerItems.length) % currentMediaViewerItems.length;
-  slideMediaViewerToIndex(nextIndex, "prev");
+  commitMediaViewerSwipe("prev");
 }
 
 function showNextMediaViewerItem(){
-  if(currentMediaViewerItems.length <= 1) return;
-  const nextIndex = (currentMediaViewerIndex + 1) % currentMediaViewerItems.length;
-  slideMediaViewerToIndex(nextIndex, "next");
+  commitMediaViewerSwipe("next");
 }
 
 function getMediaViewerContentHtml(url, type){
@@ -1305,6 +1301,145 @@ function slideMediaViewerToIndex(nextIndex, direction){
   }, 220);
 }
 
+function getMediaViewerEntry(index){
+  if(!currentMediaViewerItems.length) return null;
+  const total = currentMediaViewerItems.length;
+  const safeIndex = (index + total) % total;
+  return currentMediaViewerItems[safeIndex] || null;
+}
+
+function getMediaViewerContentHtmlByEntry(entry, active = false){
+  if(!entry || !entry.item || !entry.item.url) return "";
+
+  const url = entry.item.url;
+  const type = entry.kind;
+  const autoplay = active ? "autoplay" : "";
+
+  if(type === "audio"){
+    return `
+      <div class="audio-viewer-page">
+        <div class="audio-viewer-center">
+          <div class="audio-viewer-avatar"></div>
+          <div class="audio-viewer-name">${escapeHtml(artistName)}</div>
+        </div>
+
+        <div class="audio-viewer-player">
+          <audio controls ${autoplay} preload="metadata" src="${escapeAttr(url)}"></audio>
+        </div>
+      </div>
+    `;
+  }
+
+  if(type === "image"){
+    return `<img class="viewer-media" src="${escapeAttr(url)}">`;
+  }
+
+  if(type === "video"){
+    return `<video class="viewer-media" controls ${autoplay} preload="metadata" src="${escapeAttr(url)}"></video>`;
+  }
+
+  return "";
+}
+
+function updateMediaViewerHeaderByEntry(entry){
+  const viewer = document.getElementById("mediaViewer");
+  const downloadBtn = document.getElementById("mediaDownloadBtn");
+
+  if(!entry || !entry.item) return;
+
+  if(viewer){
+    viewer.dataset.type = entry.kind;
+    viewer.dataset.index = String(currentMediaViewerIndex);
+    viewer.classList.toggle("audio-viewer-mode", entry.kind === "audio");
+  }
+
+  if(downloadBtn){
+    downloadBtn.dataset.url = entry.item.url;
+    downloadBtn.style.display = entry.kind === "audio" ? "none" : "block";
+  }
+}
+
+function renderMediaViewerTrack(){
+  const viewerBody = document.getElementById("mediaViewerBody");
+  if(!viewerBody) return;
+
+  const prevEntry = getMediaViewerEntry(currentMediaViewerIndex - 1);
+  const currentEntry = getMediaViewerEntry(currentMediaViewerIndex);
+  const nextEntry = getMediaViewerEntry(currentMediaViewerIndex + 1);
+
+  updateMediaViewerHeaderByEntry(currentEntry);
+
+  viewerBody.innerHTML = `
+  <div class="media-viewer-track" id="mediaViewerTrack">
+    <div class="media-viewer-slide">
+      ${getMediaViewerContentHtmlByEntry(prevEntry, false)}
+    </div>
+    <div class="media-viewer-slide">
+      ${getMediaViewerContentHtmlByEntry(currentEntry, true)}
+    </div>
+    <div class="media-viewer-slide">
+      ${getMediaViewerContentHtmlByEntry(nextEntry, false)}
+    </div>
+  </div>
+`;
+
+  const track = document.getElementById("mediaViewerTrack");
+  if(track){
+    track.style.transition = "none";
+    track.style.transform = "translateX(-100%)";
+  }
+}
+
+function moveMediaViewerTrack(dx){
+  const track = document.getElementById("mediaViewerTrack");
+  if(!track) return;
+  track.style.transition = "none";
+  track.style.transform = `translateX(calc(-100% + ${dx}px))`;
+}
+
+function resetMediaViewerTrack(){
+  const track = document.getElementById("mediaViewerTrack");
+  if(!track) return;
+
+  track.style.transition = "transform 180ms ease";
+  track.style.transform = "translateX(-100%)";
+
+  setTimeout(() => {
+    track.style.transition = "";
+  }, 190);
+}
+
+function commitMediaViewerSwipe(direction){
+  if(mediaViewerAnimating) return;
+  if(currentMediaViewerItems.length <= 1) return;
+
+  const track = document.getElementById("mediaViewerTrack");
+  if(!track) return;
+
+  mediaViewerAnimating = true;
+
+  // 往左滑：看下一張，track 往左到 -200%
+  // 往右滑：看上一張，track 往右到 0%
+  const targetTransform = direction === "next"
+    ? "translateX(-200%)"
+    : "translateX(0)";
+
+  track.style.transition = "transform 220ms ease";
+  track.style.transform = targetTransform;
+
+  setTimeout(() => {
+    if(direction === "next"){
+      currentMediaViewerIndex = (currentMediaViewerIndex + 1) % currentMediaViewerItems.length;
+    }else{
+      currentMediaViewerIndex =
+        (currentMediaViewerIndex - 1 + currentMediaViewerItems.length) % currentMediaViewerItems.length;
+    }
+
+    renderMediaViewerTrack();
+    mediaViewerAnimating = false;
+  }, 230);
+}
+
 function setupMediaViewerSwipe(viewer){
   if(!viewer || mediaViewerSwipeBound) return;
   mediaViewerSwipeBound = true;
@@ -1316,6 +1451,7 @@ function setupMediaViewerSwipe(viewer){
   let pointerId = null;
   let moved = false;
 
+
   viewer.style.touchAction = "pan-y";
 
   viewer.addEventListener("pointerdown", e => {
@@ -1324,18 +1460,12 @@ function setupMediaViewerSwipe(viewer){
     if(e.pointerType === "mouse" && e.button !== 0) return;
     if(e.target.closest?.("button")) return;
 
-    const viewerBody = document.getElementById("mediaViewerBody");
-    if(!viewerBody) return;
-
     tracking = true;
     moved = false;
     pointerId = e.pointerId;
     startX = e.clientX;
     startY = e.clientY;
     startTime = Date.now();
-
-    viewerBody.style.transition = "none";
-    viewerBody.style.transform = "translateX(0)";
 
     try {
       viewer.setPointerCapture(pointerId);
@@ -1348,16 +1478,14 @@ function setupMediaViewerSwipe(viewer){
 
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
-    const viewerBody = document.getElementById("mediaViewerBody");
-    if(!viewerBody) return;
 
     if(Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)){
       moved = true;
       e.preventDefault();
       e.stopPropagation();
 
-      // 跟著手指移動，乘 0.9 讓它比較穩
-      viewerBody.style.transform = `translateX(${dx * 0.9}px)`;
+      // 這裡會讓前一張 / 後一張跟著露出來
+      moveMediaViewerTrack(dx);
     }
   }, true);
 
@@ -1368,7 +1496,6 @@ function setupMediaViewerSwipe(viewer){
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     const elapsed = Date.now() - startTime;
-    const viewerBody = document.getElementById("mediaViewerBody");
 
     tracking = false;
     pointerId = null;
@@ -1381,36 +1508,22 @@ function setupMediaViewerSwipe(viewer){
       e.stopPropagation();
 
       if(dx < 0){
-        showNextMediaViewerItem();
+        commitMediaViewerSwipe("next");
       }else{
-        showPrevMediaViewerItem();
+        commitMediaViewerSwipe("prev");
       }
       return;
     }
 
-    // 沒滑夠距離就彈回原位
-    if(viewerBody && moved){
-      viewerBody.style.transition = "transform 180ms ease";
-      viewerBody.style.transform = "translateX(0)";
-      setTimeout(() => {
-        viewerBody.style.transition = "";
-      }, 190);
+    if(moved){
+      resetMediaViewerTrack();
     }
   }, true);
 
   viewer.addEventListener("pointercancel", () => {
-    const viewerBody = document.getElementById("mediaViewerBody");
-
     tracking = false;
     pointerId = null;
-
-    if(viewerBody){
-      viewerBody.style.transition = "transform 180ms ease";
-      viewerBody.style.transform = "translateX(0)";
-      setTimeout(() => {
-        viewerBody.style.transition = "";
-      }, 190);
-    }
+    resetMediaViewerTrack();
   }, true);
 
   document.addEventListener("keydown", e => {
@@ -1418,12 +1531,12 @@ function setupMediaViewerSwipe(viewer){
 
     if(e.key === "ArrowLeft"){
       e.preventDefault();
-      showPrevMediaViewerItem();
+      commitMediaViewerSwipe("prev");
     }
 
     if(e.key === "ArrowRight"){
       e.preventDefault();
-      showNextMediaViewerItem();
+      commitMediaViewerSwipe("next");
     }
   });
 }
@@ -1462,8 +1575,9 @@ function openMediaViewer(url, type, time = ""){
     titleEl.textContent = type === "audio" ? "" : "";
   }
 
-  setMediaViewerContent(url, type);
+  renderMediaViewerTrack();
 }
+
 function downloadMediaFile(url){
   if(!url) return;
   fetch(url)
