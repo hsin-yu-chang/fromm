@@ -1070,24 +1070,38 @@ function goBackFromPage(page = getCurrentPage()){
 }
 
 window.addEventListener("popstate", () => {
-  // 手機實體返回鍵 / 瀏覽器返回鍵：
-  // 先補回目前頁面的保護紀錄，避免某些情況直接跳出 PWA / 網頁。
-  // 接著執行跟左上角返回按鈕一樣的邏輯。
   const fromPage = getCurrentPage();
-  keepInsideCurrentPage();
 
+  // 先處理圖片 / 影片 / 語音預覽
+  // 不要一進來就 keepInsideCurrentPage，不然手機返回歷史會亂掉
   if(isMediaViewerOpen()){
-    closeMediaViewer();
+    closeMediaViewer(true);
     showPage(fromPage);
+
+    // 關掉預覽後，再補一筆保護紀錄
+    setTimeout(() => {
+      keepInsideCurrentPage();
+    }, 0);
+
     return;
   }
 
   if(fromPage === "chat"){
     showPage("chat");
+
+    // 在聊天室按手機返回，不讓它直接退出 PWA
+    setTimeout(() => {
+      keepInsideCurrentPage();
+    }, 0);
+
     return;
   }
 
   goBackFromPage(fromPage);
+
+  setTimeout(() => {
+    keepInsideCurrentPage();
+  }, 0);
 });
 
 function showPage(page){
@@ -1599,18 +1613,28 @@ function downloadMediaFile(url){
       alert("下載失敗，請稍後再試。");
     });
 }
-function closeMediaViewer(){
+function closeMediaViewer(fromPopstate = false){
   const viewer = document.getElementById("mediaViewer");
   const body = document.getElementById("mediaViewerBody");
 
   if(body) body.innerHTML = "";
+
   if(viewer){
     viewer.style.display = "none";
     viewer.classList.remove("audio-viewer-mode");
     delete viewer.dataset.type;
     delete viewer.dataset.index;
   }
+
   currentMediaViewerIndex = -1;
+
+  // 如果是點左上角返回關閉預覽，不是手機返回鍵，
+  // 就補一筆目前頁面的歷史，避免下一次手機返回直接退出。
+  if(!fromPopstate){
+    setTimeout(() => {
+      keepInsideCurrentPage();
+    }, 0);
+  }
 }
 
 

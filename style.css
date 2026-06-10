@@ -1341,3 +1341,52 @@ button.nav-btn.menu-btn{
   object-fit:contain !important;
   display:block !important;
 }
+
+/* === 語音預覽放進左右滑 slide 後的修正 === */
+.media-viewer-slide .audio-viewer-page{
+  width:100% !important;
+  height:100% !important;
+  min-width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  background:var(--theme-audio-bg) !important;
+  box-sizing:border-box !important;
+  padding:80px 24px 36px !important;
+}
+
+.media-viewer-slide .audio-viewer-center{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:1 !important;
+}
+
+.media-viewer-slide .audio-viewer-avatar{
+  width:96px !important;
+  height:96px !important;
+  border-radius:50% !important;
+  background:var(--theme-media-card) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  flex:0 0 auto !important;
+}
+
+.media-viewer-slide .audio-viewer-name{
+  display:block !important;
+  margin-top:14px !important;
+  color:var(--theme-text-color) !important;
+  font-size:18px !important;
+}
+
+.media-viewer-slide .audio-viewer-player{
+  width:100% !important;
+  flex:0 0 auto !important;
+}
+
+.media-viewer-slide .audio-viewer-player audio{
+  width:100% !important;
+  display:block !important;
+}
