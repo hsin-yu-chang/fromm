@@ -1,3 +1,312 @@
+function renderBaseLayout(){
+  const root = document.getElementById("appRoot") || document.body;
+  root.innerHTML = `
+    <div id="mainPage" class="main-page">
+      <div class="main-header">
+        <div class="main-title">THE BOYZ</div>
+        <div class="main-actions">
+          <button class="main-icon-btn" type="button" aria-label="新增好友">♙</button>
+          <button class="main-icon-btn" type="button" aria-label="設定">◎</button>
+        </div>
+      </div>
+
+      <div class="main-profile" role="button" tabindex="0" onclick="selectFriend('sunwoo')">
+        <div class="main-profile-avatar" style="background-image:url('./icons/profile.jpg')"></div>
+        <div class="main-profile-name">ᖰ•౪•ᖳ</div>
+      </div>
+
+      <div class="main-section-title">Best fromm Friend <span id="mainFriendCount">0</span></div>
+      <div class="main-friend-list" id="mainFriendList"></div>
+
+      <div class="main-section-divider"></div>
+      <div class="main-section-title">fromm朋友 0</div>
+
+      <div class="main-bottom-panel">
+        <div class="main-interest-title">感興趣的藝人 4 <span>編輯</span></div>
+      </div>
+      <div class="main-bottom-nav">
+        <button class="main-bottom-item active" type="button">☆</button>
+        <button class="main-bottom-item" type="button">💬</button>
+        <button class="main-bottom-item" type="button">▭</button>
+        <button class="main-bottom-item" type="button">▣</button>
+        <button class="main-bottom-item" type="button">•••</button>
+      </div>
+    </div>
+
+    <div class="app" style="display:none;">
+      <div class="header chat-header">
+        <div class="header-bar" id="headerNormal">
+          <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="showMain()">
+            <span class="back-icon">‹</span>
+          </button>
+          <div class="name" id="artistName">&nbsp;선우</div>
+
+          <div class="header-actions">
+            <button class="nav-btn search-btn" type="button" aria-label="搜尋" onclick="openSearch()">
+              <span class="icon-search" aria-hidden="true"></span>
+            </button>
+            <button class="nav-btn menu-btn" type="button" onclick="showSettings()" aria-label="聊天室設定">☰</button>
+          </div>
+        </div>
+
+        <div class="header-bar search-mode" id="headerSearch" style="display:none;">
+          <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="closeSearch()">
+            <span class="back-icon">‹</span>
+          </button>
+
+          <div class="header-search-box">
+            <span class="icon-search search-box-icon" aria-hidden="true"></span>
+            <input id="searchInput" class="header-search-input" type="text" placeholder="搜尋訊息">
+          </div>
+
+          <button class="nav-btn close-btn" type="button" aria-label="關閉搜尋" onclick="closeSearch()">×</button>
+        </div>
+      </div>
+
+      <div class="chat" id="chat"></div>
+
+      <div class="input-area">
+        <input id="userInput" placeholder="傳送訊息" onkeydown="if(event.key==='Enter')sendUser()">
+        <button onclick="sendUser()">送出</button>
+      </div>
+    </div>
+
+    <div id="settingsPage" class="settings-page">
+      <div class="header settings-header">
+        <div class="header-bar">
+          <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="showChat()">
+            <span class="back-icon">‹</span>
+          </button>
+          <div class="name">聊天室設定</div>
+          <div class="header-actions placeholder-actions">
+            <span class="nav-placeholder"></span>
+            <span class="nav-placeholder"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-content" id="settingsContent"></div>
+    </div>
+  `;
+}
+
+
+function appendAppLayer(element){
+  const root = document.getElementById("appRoot") || document.body;
+  root.appendChild(element);
+}
+
+function injectMainPageStyle(){
+  if(document.getElementById("mainPageStyle")) return;
+  const style = document.createElement("style");
+  style.id = "mainPageStyle";
+  style.textContent = `
+    #appRoot{
+      width:100%;
+      max-width:430px;
+      height:100dvh;
+      position:relative;
+    }
+
+    #appRoot > .settings-page,
+    #appRoot > .media-viewer{
+      width:100%;
+      max-width:430px;
+    }
+    #appRoot > .media-viewer{
+      left:50%;
+      right:auto;
+      transform:translateX(-50%);
+      z-index:99999;
+    }
+    .main-page{
+      width:100%;
+      max-width:430px;
+      height:100dvh;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      background:#17181c;
+      color:#d9dbe0;
+      border-left:1px solid #333;
+      border-right:1px solid #333;
+      font-family:"kr", "cn", system-ui, sans-serif;
+      position:relative;
+    }
+    .main-header{
+      flex-shrink:0;
+      height:82px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 26px;
+      background:#17181c;
+    }
+    .main-title{
+      font-size:20px;
+      letter-spacing:6px;
+      color:#f0f1f4;
+      white-space:nowrap;
+    }
+    .main-actions{
+      display:flex;
+      align-items:center;
+      gap:22px;
+    }
+    .main-icon-btn{
+      all:unset;
+      width:42px;
+      height:42px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#d9dbe0;
+      font-size:28px;
+      cursor:pointer;
+    }
+    .main-profile{
+      flex-shrink:0;
+      display:flex;
+      align-items:center;
+      gap:28px;
+      padding:6px 32px 42px;
+      cursor:pointer;
+    }
+    .main-profile-avatar,
+    .main-friend-avatar{
+      border-radius:50%;
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      flex-shrink:0;
+    }
+    .main-profile-avatar{
+      width:72px;
+      height:72px;
+    }
+    .main-profile-name{
+      color:#d9dbe0;
+      font-size:20px;
+      line-height:1;
+    }
+    .main-section-title{
+      flex-shrink:0;
+      padding:0 26px 18px;
+      color:#d9dbe0;
+      font-size:20px;
+      font-weight:700;
+    }
+    .main-section-title span{
+      color:#60636c;
+      font-weight:400;
+    }
+    .main-friend-list{
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+      padding:0 26px 18px;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .main-friend-list::-webkit-scrollbar{ display:none; }
+    .main-friend-item{
+      min-height:88px;
+      display:grid;
+      grid-template-columns:72px minmax(0, 1fr) auto;
+      align-items:center;
+      gap:22px;
+      cursor:pointer;
+    }
+    .main-friend-item:active{ opacity:.72; }
+    .main-friend-avatar{
+      width:66px;
+      height:66px;
+    }
+    .main-friend-name{
+      color:#f0f1f4;
+      font-size:18px;
+      line-height:1.1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .main-friend-sub{
+      margin-top:7px;
+      color:#747781;
+      font-size:17px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .main-heart{
+      color:#ff3f45;
+      font-size:18px;
+      white-space:nowrap;
+    }
+    .main-section-divider{
+      height:1px;
+      margin:0 26px 22px;
+      background:rgba(255,255,255,.08);
+    }
+    .main-bottom-panel{
+      flex-shrink:0;
+      height:74px;
+      display:flex;
+      align-items:center;
+      padding:0 26px;
+      background:#111216;
+    }
+    .main-interest-title{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      color:#d9dbe0;
+      font-size:18px;
+    }
+    .main-bottom-nav{
+      flex-shrink:0;
+      height:64px;
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      background:#262830;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+    .main-bottom-item{
+      all:unset;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#686b76;
+      font-size:24px;
+      cursor:pointer;
+    }
+    .main-bottom-item.active{
+      color:#f0f1f4;
+      font-weight:700;
+    }
+    @media (max-width:430px){
+      #appRoot,
+      .main-page{
+        max-width:none;
+        width:100%;
+        border:0;
+      }
+      .main-header{
+        height:calc(82px + env(safe-area-inset-top));
+        padding-top:env(safe-area-inset-top);
+      }
+      .main-bottom-nav{
+        height:calc(64px + env(safe-area-inset-bottom));
+        padding-bottom:env(safe-area-inset-bottom);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+injectMainPageStyle();
+renderBaseLayout();
+
 const chat = document.getElementById("chat");
 const DEFAULT_ARTIST_NAME = "선우";
 const DEFAULT_NICKNAME = "더비";
@@ -159,6 +468,111 @@ let currentMediaViewerItems = [];
 let currentMediaViewerIndex = -1;
 let mediaViewerSwipeBound = false;
 let mediaViewerAnimating = false;
+
+const FROMM_FRIENDS = [
+  {
+    id:"sunwoo",
+    name:"선우",
+    avatar:"./icons/profile.jpg",
+    subtitle:"😚",
+    likes:"+142",
+    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+  },
+  {
+    id:"mrggom",
+    name:"Mr.곰",
+    avatar:"./icons/profile.jpg",
+    subtitle:"사요.호슈 mr_ggom",
+    likes:"+521",
+    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+  },
+  {
+    id:"younghoon",
+    name:"영훈이",
+    avatar:"./icons/profile.jpg",
+    subtitle:"더...",
+    likes:"+45",
+    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+  },
+  {
+    id:"hyunjae",
+    name:"영재💛",
+    avatar:"./icons/profile.jpg",
+    subtitle:"I love THE B 💗",
+    likes:"+45",
+    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+  },
+  {
+    id:"junyoung",
+    name:"준영이",
+    avatar:"./icons/profile.jpg",
+    subtitle:"💞",
+    likes:"+23",
+    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+  },
+  {
+    id:"kkojjil",
+    name:"꼬질이",
+    avatar:"./icons/profile.jpg",
+    subtitle:"",
+    likes:"+12",
+    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+  }
+];
+
+let currentFriendId = localStorage.getItem("frommCurrentFriendId") || "sunwoo";
+
+function getCurrentFriend(){
+  return FROMM_FRIENDS.find(friend => friend.id === currentFriendId) || FROMM_FRIENDS[0];
+}
+
+function applyCurrentFriendMeta(){
+  const friend = getCurrentFriend();
+  artistName = friend.name || DEFAULT_ARTIST_NAME;
+  localStorage.setItem("frommChatName", artistName);
+  document.documentElement.style.setProperty("--avatar-image", `url("${friend.avatar || "./icons/profile.jpg"}")`);
+
+  const artistEl = document.getElementById("artistName");
+  if(artistEl) artistEl.textContent = artistName;
+}
+
+function renderMainFriendList(){
+  const list = document.getElementById("mainFriendList");
+  const count = document.getElementById("mainFriendCount");
+  if(count) count.textContent = String(FROMM_FRIENDS.length);
+  if(!list) return;
+
+  list.innerHTML = FROMM_FRIENDS.map(friend => `
+    <div class="main-friend-item" role="button" tabindex="0" onclick="selectFriend('${escapeAttr(friend.id)}')">
+      <div class="main-friend-avatar" style="background-image:url('${escapeAttr(friend.avatar || "./icons/profile.jpg")}')"></div>
+      <div class="main-friend-main">
+        <div class="main-friend-name">${escapeHtml(friend.name)}</div>
+        <div class="main-friend-sub">${escapeHtml(friend.subtitle || "")}</div>
+      </div>
+      <div class="main-heart">❤ ${escapeHtml(friend.likes || "")}</div>
+    </div>
+  `).join("");
+}
+
+async function selectFriend(friendId){
+  const friend = FROMM_FRIENDS.find(item => item.id === friendId) || FROMM_FRIENDS[0];
+  currentFriendId = friend.id;
+  localStorage.setItem("frommCurrentFriendId", currentFriendId);
+  applyCurrentFriendMeta();
+
+  try{
+    allMessages = await loadAllMessageFiles(friend.messages);
+    applyThemeColor();
+    updateSettingsLabels();
+    renderMessages(allMessages);
+    setPage("chat");
+  }catch(err){
+    console.error(err);
+    chat.innerHTML = `<div class="error-msg">messages.json 讀取失敗：${escapeHtml(err.message)}</div>`;
+    setPage("chat");
+  }
+}
+
 
 function normalizeHexColor(value){
   let color = String(value || "").trim();
@@ -1097,7 +1511,7 @@ function ensureMediaPage(){
     <div class="media-content" id="mediaContent"></div>
   `;
 
-  document.body.appendChild(mediaPage);
+  appendAppLayer(mediaPage);
   return mediaPage;
 }
 
@@ -1164,6 +1578,7 @@ function renderMediaPage(tab = currentMediaTab){
 }
 
 const PAGE_LIST = [
+  "main",
   "chat",
   "settings",
   "media",
@@ -1178,6 +1593,7 @@ const PAGE_LIST = [
 
 // 每一頁按「返回」後要去哪裡，之後統一改這裡。
 const BACK_TARGETS = {
+  chat: "main",
   settings: "chat",
   media: "settings",
   "theme-settings": "settings",
@@ -1189,7 +1605,7 @@ const BACK_TARGETS = {
   "edit-theme-image": "theme-custom"
 };
 
-let currentPage = "chat";
+let currentPage = "main";
 
 function isMediaViewerOpen(){
   const viewer = document.getElementById("mediaViewer");
@@ -1197,12 +1613,12 @@ function isMediaViewerOpen(){
 }
 
 function normalizePage(page){
-  const value = String(page || "chat").replace("#", "").trim();
-  return PAGE_LIST.includes(value) ? value : "chat";
+  const value = String(page || "main").replace("#", "").trim();
+  return PAGE_LIST.includes(value) ? value : "main";
 }
 
 function getCurrentPage(){
-  return currentPage || normalizePage(location.hash.replace("#", "") || "chat");
+  return currentPage || normalizePage(location.hash.replace("#", "") || "main");
 }
 
 function writeHistoryPage(page, replace = false, extraState = {}){
@@ -1288,6 +1704,7 @@ window.addEventListener("popstate", () => {
 function showPage(page){
   const nextPage = normalizePage(page);
   const app = document.querySelector(".app");
+  const mainPage = document.getElementById("mainPage");
   const settingsPage = document.getElementById("settingsPage");
   const mediaPage = document.getElementById("mediaPage");
   const settingsEditPage = document.getElementById("settingsEditPage");
@@ -1296,12 +1713,20 @@ function showPage(page){
   const themePresetPage = document.getElementById("themePresetPage");
 
   if(app) app.style.display = "none";
+  if(mainPage) mainPage.style.display = "none";
   if(settingsPage) settingsPage.style.display = "none";
   if(mediaPage) mediaPage.style.display = "none";
   if(settingsEditPage) settingsEditPage.style.display = "none";
   if(themeSettingsPage) themeSettingsPage.style.display = "none";
   if(themeCustomPage) themeCustomPage.style.display = "none";
   if(themePresetPage) themePresetPage.style.display = "none";
+
+
+  if(nextPage === "main"){
+    renderMainFriendList();
+    if(mainPage) mainPage.style.display = "flex";
+    return;
+  }
 
   if(nextPage === "settings"){
     renderSettingsItems();
@@ -1363,6 +1788,10 @@ function showSettings(){
 
 function showChat(){
   setPage("chat");
+}
+
+function showMain(){
+  setPage("main");
 }
 
 function setupMainCalendarButton(){
@@ -1663,7 +2092,7 @@ function ensureMediaViewer(){
     <div class="media-viewer-body" id="mediaViewerBody"></div>
   `;
 
-  document.body.appendChild(viewer);
+  appendAppLayer(viewer);
   setupMediaViewerSwipe(viewer);
   return viewer;
 }
@@ -2124,7 +2553,7 @@ function ensureThemeSettingsPage(){
     <div class="settings-content theme-settings-content" id="themeSettingsContent"></div>
   `;
 
-  document.body.appendChild(page);
+  appendAppLayer(page);
   return page;
 }
 
@@ -2152,7 +2581,7 @@ function ensureThemeCustomPage(){
     <div class="settings-content theme-settings-content" id="themeCustomContent"></div>
   `;
 
-  document.body.appendChild(page);
+  appendAppLayer(page);
   return page;
 }
 
@@ -2180,7 +2609,7 @@ function ensureThemePresetPage(){
     <div class="settings-content theme-settings-content" id="themePresetContent"></div>
   `;
 
-  document.body.appendChild(page);
+  appendAppLayer(page);
   return page;
 }
 
@@ -2530,7 +2959,7 @@ function ensureSettingsEditPage(){
     </div>
   `;
 
-  document.body.appendChild(page);
+  appendAppLayer(page);
 
   const input = page.querySelector("#settingsEditInput");
   input.addEventListener("input", updateSettingsEditState);
@@ -2741,9 +3170,9 @@ const MESSAGE_FILES = [
   "./messages/fromm_messages.json",
 ];
 
-async function loadAllMessageFiles(){
+async function loadAllMessageFiles(files = MESSAGE_FILES){
   const jsonList = await Promise.all(
-    MESSAGE_FILES.map(async file => {
+    files.map(async file => {
       const res = await fetch(file, { cache: "no-store" });
       if(!res.ok) throw new Error(`${file} HTTP ${res.status}`);
       return await res.json();
@@ -2765,9 +3194,11 @@ async function loadAllMessageFiles(){
   return merged;
 }
 
-loadAllMessageFiles()
+loadAllMessageFiles(getCurrentFriend().messages)
   .then(async messages => {
     allMessages = messages;
+    applyCurrentFriendMeta();
+    renderMainFriendList();
     try {
       chatBgImage = await loadBgImage();
     } catch (err) {
@@ -2779,7 +3210,7 @@ loadAllMessageFiles()
     updateSettingsLabels();
     renderMessages(allMessages);
 
-    const initialPage = normalizePage(location.hash.replace("#", "") || "chat");
+    const initialPage = normalizePage(location.hash.replace("#", "") || "main");
     initHistoryPage(initialPage);
     showPage(initialPage);
     setupMainCalendarButton();

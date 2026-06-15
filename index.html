@@ -4,70 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Fromm Mock Chat</title>
-<link rel="stylesheet" href="./style.css?v=20260615-calendarfix">
+<link rel="stylesheet" href="./style.css?v=20260615-script-layout">
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#111216">
 </head>
 <body>
-
-<div class="app">
-  <div class="header chat-header">
-    <div class="header-bar" id="headerNormal">
-      <button class="nav-btn back-btn" type="button" aria-label="返回">
-        <span class="back-icon">‹</span>
-      </button>
-      <div class="name" id="artistName">&nbsp;선우</div>
-
-      <div class="header-actions">
-        <button class="nav-btn search-btn" type="button" aria-label="搜尋" onclick="openSearch()">
-          <span class="icon-search" aria-hidden="true"></span>
-        </button>
-        <button class="nav-btn menu-btn" type="button" onclick="showSettings()" aria-label="聊天室設定">☰</button>
-      </div>
-    </div>
-
-    <div class="header-bar search-mode" id="headerSearch" style="display:none;">
-      <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="closeSearch()">
-        <span class="back-icon">‹</span>
-      </button>
-
-      <div class="header-search-box">
-        <span class="icon-search search-box-icon" aria-hidden="true"></span>
-        <input id="searchInput" class="header-search-input" type="text" placeholder="搜尋訊息">
-      </div>
-
-      <button class="nav-btn close-btn" type="button" aria-label="關閉搜尋" onclick="closeSearch()">×</button>
-    </div>
-  </div>
-
-  <div class="chat" id="chat"></div>
-
-  <div class="input-area">
-    <input id="userInput" placeholder="傳送訊息" onkeydown="if(event.key==='Enter')sendUser()">
-    <button onclick="sendUser()">送出</button>
-  </div>
-</div>
-
-<div id="settingsPage" class="settings-page">
-  <div class="header settings-header">
-    <div class="header-bar">
-      <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="showChat()">
-        <span class="back-icon">‹</span>
-      </button>
-      <div class="name">聊天室設定</div>
-      <div class="header-actions placeholder-actions">
-        <span class="nav-placeholder"></span>
-        <span class="nav-placeholder"></span>
-      </div>
-    </div>
-  </div>
-
-  <div class="settings-content" id="settingsContent"></div>
-</div>
-
-<script src="./script.js?v=20260615-calendarfix"></script>
+<div id="appRoot"></div>
+<script src="./script.js?v=20260615-script-layout"></script>
 <script src="./fake-scrollbar.js?v=1"></script>
-
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
