@@ -1255,13 +1255,17 @@ button.nav-btn.menu-btn{
   min-width:0;
 }
 
+/* === 媒體預覽頁修正版：照片/影片/語音共用 === */
 #mediaViewerBody{
   position:relative;
+  flex:1;
   width:100%;
   height:100%;
+  min-height:0;
   overflow:hidden;
   padding:0;
   margin:0;
+  box-sizing:border-box;
 }
 
 .media-viewer-track{
@@ -1285,9 +1289,9 @@ button.nav-btn.menu-btn{
   overflow:hidden;
   padding:0;
   margin:0;
+  box-sizing:border-box;
 }
 
-/* 圖片/影片維持滿版，但不變形 */
 .media-viewer-slide .viewer-media{
   width:100%;
   height:100%;
@@ -1297,96 +1301,82 @@ button.nav-btn.menu-btn{
   display:block;
 }
 
-/* === 手機版媒體預覽滑動修正：避免露出前後張 === */
-#mediaViewerBody{
-  position:relative !important;
-  width:100vw !important;
-  height:calc(100vh - 56px) !important;
-  overflow:hidden !important;
-  padding:0 !important;
-  margin:0 !important;
-  box-sizing:border-box !important;
-}
-
-.media-viewer-track{
-  width:100vw !important;
-  height:100% !important;
-  display:flex !important;
-  gap:0 !important;
-  padding:0 !important;
-  margin:0 !important;
-  will-change:transform !important;
-}
-
-.media-viewer-slide{
-  width:100vw !important;
-  min-width:100vw !important;
-  max-width:100vw !important;
-  height:100% !important;
-  flex:0 0 100vw !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  overflow:hidden !important;
-  padding:0 !important;
-  margin:0 !important;
-  box-sizing:border-box !important;
-}
-
-.media-viewer-slide .viewer-media{
-  width:100vw !important;
-  height:100% !important;
-  max-width:100vw !important;
-  max-height:100% !important;
-  object-fit:contain !important;
-  display:block !important;
-}
-
-/* === 語音預覽放進左右滑 slide 後的修正 === */
+/* === 語音預覽放在 slide 裡時的修正 === */
 .media-viewer-slide .audio-viewer-page{
-  width:100% !important;
-  height:100% !important;
-  min-width:100% !important;
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  background:var(--theme-audio-bg) !important;
-  box-sizing:border-box !important;
-  padding:80px 24px 36px !important;
+  position:relative;
+  width:100%;
+  height:100%;
+  min-width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:var(--theme-audio-bg);
+  box-sizing:border-box;
+  padding:40px 24px 90px;
 }
 
 .media-viewer-slide .audio-viewer-center{
-  display:flex !important;
-  flex-direction:column !important;
-  align-items:center !important;
-  justify-content:center !important;
-  flex:1 !important;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  transform:none;
 }
 
 .media-viewer-slide .audio-viewer-avatar{
-  width:96px !important;
-  height:96px !important;
-  border-radius:50% !important;
-  background:var(--theme-media-card) !important;
-  background-size:cover !important;
-  background-position:center !important;
-  flex:0 0 auto !important;
+  width:160px;
+  height:160px;
+  margin-bottom:22px;
+  border-radius:50%;
+  background-image:var(--avatar-image);
+  background-color:var(--theme-media-card);
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);
+  flex:0 0 auto;
 }
 
 .media-viewer-slide .audio-viewer-name{
-  display:block !important;
-  margin-top:14px !important;
-  color:var(--theme-text-color) !important;
-  font-size:18px !important;
+  display:block;
+  color:white;
+  font-size:28px;
+  font-weight:700;
+  font-family:"kr", "cn", system-ui, sans-serif;
 }
 
 .media-viewer-slide .audio-viewer-player{
-  width:100% !important;
-  flex:0 0 auto !important;
+  position:absolute;
+  left:50%;
+  bottom:28px;
+  width:min(360px, 86%);
+  transform:translateX(-50%);
 }
 
 .media-viewer-slide .audio-viewer-player audio{
-  width:100% !important;
-  display:block !important;
+  width:100%;
+  display:block;
+}
+
+@media (max-width:430px){
+  .media-viewer{
+    max-width:none;
+    width:100%;
+    height:100dvh;
+    border:0;
+  }
+
+  .media-viewer-header{
+    height:calc(58px + env(safe-area-inset-top));
+    padding-top:env(safe-area-inset-top);
+  }
+
+  .media-viewer-slide .audio-viewer-page{
+    padding-bottom:calc(90px + env(safe-area-inset-bottom));
+  }
+
+  .media-viewer-slide .audio-viewer-player{
+    bottom:calc(28px + env(safe-area-inset-bottom));
+  }
 }

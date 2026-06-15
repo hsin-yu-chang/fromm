@@ -1384,18 +1384,18 @@ function renderMediaViewerTrack(){
   updateMediaViewerHeaderByEntry(currentEntry);
 
   viewerBody.innerHTML = `
-  <div class="media-viewer-track" id="mediaViewerTrack">
-    <div class="media-viewer-slide">
-      ${getMediaViewerContentHtmlByEntry(prevEntry, false)}
+    <div class="media-viewer-track" id="mediaViewerTrack">
+      <div class="media-viewer-slide">
+        ${getMediaViewerContentHtmlByEntry(prevEntry, false)}
+      </div>
+      <div class="media-viewer-slide">
+        ${getMediaViewerContentHtmlByEntry(currentEntry, true)}
+      </div>
+      <div class="media-viewer-slide">
+        ${getMediaViewerContentHtmlByEntry(nextEntry, false)}
+      </div>
     </div>
-    <div class="media-viewer-slide">
-      ${getMediaViewerContentHtmlByEntry(currentEntry, true)}
-    </div>
-    <div class="media-viewer-slide">
-      ${getMediaViewerContentHtmlByEntry(nextEntry, false)}
-    </div>
-  </div>
-`;
+  `;
 
   const track = document.getElementById("mediaViewerTrack");
   if(track){
