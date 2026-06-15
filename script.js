@@ -1538,14 +1538,22 @@ function positionCalendarPicker(anchor){
   const rect = anchor?.getBoundingClientRect?.();
   const appRect = document.querySelector(".app")?.getBoundingClientRect?.();
 
-  const pickerWidth = Math.min(220, window.innerWidth - 20);
+  const isMobile = window.matchMedia("(max-width:430px)").matches;
+  const pickerWidth = Math.min(isMobile ? 220 : 248, window.innerWidth - 20);
+
+  picker.style.width = `${pickerWidth}px`;
+
   const baseLeft = rect ? rect.left : 16;
   const baseTop = rect ? rect.bottom + 8 : 70;
-  const minLeft = appRect ? appRect.left + 10 : 10;
-  const maxLeft = appRect ? appRect.right - pickerWidth - 10 : window.innerWidth - pickerWidth - 10;
+  const minLeft = appRect ? Math.max(10, appRect.left + 10) : 10;
+  const maxLeftFromApp = appRect ? appRect.right - pickerWidth - 10 : window.innerWidth - pickerWidth - 10;
+  const maxLeft = Math.max(minLeft, Math.min(maxLeftFromApp, window.innerWidth - pickerWidth - 10));
 
   let left = Math.max(minLeft, Math.min(baseLeft, maxLeft));
   let top = Math.max(10, baseTop);
+
+  const maxTop = window.innerHeight - 10;
+  top = Math.min(top, maxTop);
 
   picker.style.left = `${left}px`;
   picker.style.top = `${top}px`;
