@@ -2049,10 +2049,15 @@ function ensureSettingsEditPage(){
   page.className = "settings-page settings-edit-page";
   page.innerHTML = `
     <div class="header settings-edit-header">
-      <button class="nav-btn back-btn" type="button" aria-label="返回上一頁" onclick="backFromSettingsEdit()">
+      <div class="header-bar">
+        <button class="nav-btn back-btn" type="button" aria-label="返回上一頁" onclick="backFromSettingsEdit()">
           <span class="back-icon">‹</span>
         </button>
+
+        <div class="name"></div>
+
         <button class="settings-save-btn" id="settingsEditSaveBtn" type="button" onclick="saveSettingsEdit()">儲存</button>
+      </div>
     </div>
 
     <div class="settings-edit-content">

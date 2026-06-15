@@ -196,14 +196,18 @@ button.nav-btn.back-btn{
   top:-3px;
 }
 
-.viewer-back-btn .back-icon{
-
+.viewer-back-btn{
+  position:relative;
   left:-5px;
   top:-3px;
+}
 
+.viewer-back-btn .back-icon{
+  left:0;
+  top:0;
 }
 .settings-edit-header .back-icon{
- 
+  position:relative;
   left:7px;
   top:-3px;
 
@@ -222,7 +226,7 @@ button.nav-btn:hover{
 button.nav-btn:active,
 .viewer-btn:active,
 .setting-item:active{
-  transform:scale(.96);
+  opacity:.85;
 }
 
 button.nav-btn.menu-btn{
@@ -638,8 +642,21 @@ button.nav-btn.menu-btn{
   justify-content:space-between;
 }
 
+.settings-edit-header .header-bar{
+  width:100%;
+}
+
 .settings-edit-header .back-btn{
-  margin-left:-8px;
+  margin-left:0;
+}
+
+.settings-edit-header .back-icon{
+  left:-1px;
+  top:-3px;
+}
+
+.settings-edit-header .settings-save-btn{
+  justify-self:end;
 }
 
 .settings-save-btn{
@@ -1200,37 +1217,6 @@ button.nav-btn.menu-btn{
   background:rgba(120,120,120,.95);
 }
 
-@media (max-width:430px){
-  .app,
-  .settings-page{
-    max-width:none;
-    width:100%;
-    height:100dvh;
-    border:0;
-  }
-
-  .header{
-    height:calc(58px + env(safe-area-inset-top));
-    padding-top:env(safe-area-inset-top);
-    padding-left:18px;
-    padding-right:18px;
-  }
-
-  .input-area{
-    padding-bottom:calc(12px + env(safe-area-inset-bottom));
-  }
-
-  .header-actions{
-    width:86px;
-    min-width:86px;
-    gap:10px;
-  }
-
-  .header-search-box{
-    height:42px;
-  }
-}
-
 .theme-card-actions{
   display:flex;
   gap:8px;
@@ -1255,7 +1241,7 @@ button.nav-btn.menu-btn{
   min-width:0;
 }
 
-/* === 媒體預覽頁修正版：照片/影片/語音共用 === */
+/* === 媒體預覽頁：照片 / 影片 / 語音共用 === */
 #mediaViewerBody{
   position:relative;
   flex:1;
@@ -1301,7 +1287,7 @@ button.nav-btn.menu-btn{
   display:block;
 }
 
-/* === 語音預覽放在 slide 裡時的修正 === */
+/* 語音預覽在 slide 裡的版型 */
 .media-viewer-slide .audio-viewer-page{
   position:relative;
   width:100%;
@@ -1313,7 +1299,7 @@ button.nav-btn.menu-btn{
   justify-content:center;
   background:var(--theme-audio-bg);
   box-sizing:border-box;
-  padding:40px 24px 90px;
+  padding:40px 24px 110px;
 }
 
 .media-viewer-slide .audio-viewer-center{
@@ -1329,8 +1315,8 @@ button.nav-btn.menu-btn{
   height:160px;
   margin-bottom:22px;
   border-radius:50%;
-  background-image:var(--avatar-image);
   background-color:var(--theme-media-card);
+  background-image:var(--avatar-image);
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
@@ -1351,6 +1337,7 @@ button.nav-btn.menu-btn{
   left:50%;
   bottom:28px;
   width:min(360px, 86%);
+  max-width:360px;
   transform:translateX(-50%);
 }
 
@@ -1360,6 +1347,8 @@ button.nav-btn.menu-btn{
 }
 
 @media (max-width:430px){
+  .app,
+  .settings-page,
   .media-viewer{
     max-width:none;
     width:100%;
@@ -1367,13 +1356,38 @@ button.nav-btn.menu-btn{
     border:0;
   }
 
+  .header,
   .media-viewer-header{
     height:calc(58px + env(safe-area-inset-top));
     padding-top:env(safe-area-inset-top);
   }
 
+  .header{
+    padding-left:18px;
+    padding-right:18px;
+  }
+
+  .input-area{
+    padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .header-actions{
+    width:86px;
+    min-width:86px;
+    gap:10px;
+  }
+
+  .header-search-box{
+    height:42px;
+  }
+
   .media-viewer-slide .audio-viewer-page{
-    padding-bottom:calc(90px + env(safe-area-inset-bottom));
+    padding:40px 24px calc(110px + env(safe-area-inset-bottom));
+  }
+
+  .media-viewer-slide .audio-viewer-avatar{
+    width:150px;
+    height:150px;
   }
 
   .media-viewer-slide .audio-viewer-player{
