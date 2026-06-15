@@ -1,32 +1,31 @@
 import json
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
-messages_path = BASE_DIR.parent / "messages" / "messages.json"
+input_path = r"..\messages\fromm_messages.json"
+output_path = r"fromm_messages_fixed.json"
 
-with open(messages_path, "r", encoding="utf-8") as f:
+with open(input_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-seen_text = set()   # 記錄已經出現過的 text
-a = []              # 存不重複的 url
-count = 0
+fixed = 0
+for date_key, messages in data.items():
+    for msg in messages:
+        if msg.get("date") != date_key:
+            msg["date"] = date_key
+            fixed += 1
 
-for date, msgs in data.items():
-    for msg in msgs:
-        if msg.get("type") == "emoticon":
-            text = msg.get("text", "")
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write("{\n")
+    date_keys = list(data.keys())
+    for i, date_key in enumerate(date_keys):
+        messages = data[date_key]
+        f.write(f'  {json.dumps(date_key, ensure_ascii=False)}: [\n')
+        for j, msg in enumerate(messages):
+            line = json.dumps(msg, ensure_ascii=False)
+            comma = "," if j < len(messages) - 1 else ""
+            f.write(f'    {line}{comma}\n')
+        closing = "  ]," if i < len(date_keys) - 1 else "  ]"
+        f.write(f'{closing}\n')
+    f.write("}\n")
 
-            # 如果這個 text 已經出現過，就跳過
-            if text in seen_text:
-                continue
-
-            seen_text.add(text)
-
-            url = msg.get("url", "")
-            a.append(url)
-
-            count += 1
-            print(count, date, msg.get("id"), text, url)
-
-print("emoticon 不重複 text 總數：", count)
-print(a)
+print(f"完成！共修正 {fixed} 筆物件的 date 欄位。")
+print(f"輸出檔案：{output_path}")
