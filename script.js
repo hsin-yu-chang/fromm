@@ -351,29 +351,100 @@ function setAudioDuration(audio){
   if(label) label.textContent = secToTime(audio.duration);
 }
 
+let audioProgressRaf = null;
+
+function stopAudioProgressLoop(){
+  if(audioProgressRaf){
+    cancelAnimationFrame(audioProgressRaf);
+    audioProgressRaf = null;
+  }
+}
+
+function updateAudioBubbleProgress(box, audio){
+  if(!box || !audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+
+  const label = box.querySelector(".audio-duration");
+  const scale = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
+
+  box.style.setProperty("--audio-progress-scale", String(scale));
+
+  if(label){
+    label.textContent = secToTime(Math.max(0, audio.duration - audio.currentTime));
+  }
+}
+
+function startAudioProgressLoop(box, audio){
+  stopAudioProgressLoop();
+
+  const loop = () => {
+    if(audio.paused || audio.ended){
+      stopAudioProgressLoop();
+      return;
+    }
+
+    updateAudioBubbleProgress(box, audio);
+    audioProgressRaf = requestAnimationFrame(loop);
+  };
+
+  audioProgressRaf = requestAnimationFrame(loop);
+}
+
+function resetAudioBubbleProgress(audio){
+  const box = audio.closest(".audio-bubble");
+  const play = box?.querySelector(".audio-play");
+  const label = box?.querySelector(".audio-duration");
+
+  if(play) play.textContent = "▶";
+
+  if(label && Number.isFinite(audio.duration)){
+    label.textContent = secToTime(audio.duration);
+  }
+
+  if(box){
+    box.classList.remove("playing");
+    box.style.setProperty("--audio-progress-scale", "0");
+  }
+}
+
 function toggleAudio(box){
   const audio = box.querySelector("audio");
   const play = box.querySelector(".audio-play");
   if(!audio) return;
-  document.querySelectorAll("audio").forEach(a => {
+
+  document.querySelectorAll(".audio-bubble audio").forEach(a => {
     if(a !== audio){
       a.pause();
-      const p = a.closest(".audio-bubble")?.querySelector(".audio-play");
-      if(p) p.textContent = "▶";
+      resetAudioBubbleProgress(a);
     }
   });
+
   if(audio.paused){
-    audio.play();
+    const playPromise = audio.play();
+
+    box.classList.add("playing");
     if(play) play.textContent = "❚❚";
+
+    updateAudioBubbleProgress(box, audio);
+    startAudioProgressLoop(box, audio);
+
+    if(playPromise && typeof playPromise.catch === "function"){
+      playPromise.catch(() => {
+        stopAudioProgressLoop();
+        box.classList.remove("playing");
+        if(play) play.textContent = "▶";
+      });
+    }
   }else{
     audio.pause();
+    stopAudioProgressLoop();
+    box.classList.remove("playing");
     if(play) play.textContent = "▶";
   }
 }
 
 function resetAudioButton(audio){
-  const play = audio.closest(".audio-bubble")?.querySelector(".audio-play");
-  if(play) play.textContent = "▶";
+  stopAudioProgressLoop();
+  resetAudioBubbleProgress(audio);
 }
 
 function addArtistMessage(item){
@@ -1538,22 +1609,14 @@ function positionCalendarPicker(anchor){
   const rect = anchor?.getBoundingClientRect?.();
   const appRect = document.querySelector(".app")?.getBoundingClientRect?.();
 
-  const isMobile = window.matchMedia("(max-width:430px)").matches;
-  const pickerWidth = Math.min(isMobile ? 220 : 248, window.innerWidth - 20);
-
-  picker.style.width = `${pickerWidth}px`;
-
+  const pickerWidth = Math.min(220, window.innerWidth - 20);
   const baseLeft = rect ? rect.left : 16;
   const baseTop = rect ? rect.bottom + 8 : 70;
-  const minLeft = appRect ? Math.max(10, appRect.left + 10) : 10;
-  const maxLeftFromApp = appRect ? appRect.right - pickerWidth - 10 : window.innerWidth - pickerWidth - 10;
-  const maxLeft = Math.max(minLeft, Math.min(maxLeftFromApp, window.innerWidth - pickerWidth - 10));
+  const minLeft = appRect ? appRect.left + 10 : 10;
+  const maxLeft = appRect ? appRect.right - pickerWidth - 10 : window.innerWidth - pickerWidth - 10;
 
   let left = Math.max(minLeft, Math.min(baseLeft, maxLeft));
   let top = Math.max(10, baseTop);
-
-  const maxTop = window.innerHeight - 10;
-  top = Math.min(top, maxTop);
 
   picker.style.left = `${left}px`;
   picker.style.top = `${top}px`;

@@ -1624,189 +1624,32 @@ button.nav-btn.menu-btn{
 }
 
 
-/* === Calendar mobile hard reset / final override === */
-#calendarPicker.calendar-picker{
-  position:fixed !important;
-  z-index:10020 !important;
-  display:none !important;
-  width:248px !important;
-  max-width:calc(100vw - 20px) !important;
-  padding:10px !important;
-  border-radius:16px !important;
-  background:#ffffff !important;
-  color:#111216 !important;
-  box-shadow:0 14px 36px rgba(0,0,0,.28) !important;
-  font-family:"kr", "cn", system-ui, sans-serif !important;
-  overflow:hidden !important;
+/* === Audio bubble progress fill + countdown === */
+.audio-bubble{
+  position:relative;
+  overflow:hidden;
+  --audio-progress:0%;
 }
 
-#calendarPicker.calendar-picker.open{
-  display:block !important;
+.audio-bubble::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.08);
+  border-radius:0;
+  pointer-events:none;
+  transform:scaleX(var(--audio-progress-scale, 0));
+  transform-origin:left center;
+  transition:none;
+  will-change:transform;
 }
 
-#calendarPicker .calendar-picker-header{
-  height:30px !important;
-  display:grid !important;
-  grid-template-columns:32px minmax(0, 1fr) 32px !important;
-  align-items:center !important;
-  margin:0 0 6px !important;
-  padding:0 !important;
+.audio-bubble.playing::before{
+  background:rgba(0,0,0,.11);
 }
 
-#calendarPicker .calendar-picker-title,
-#calendarPicker .calendar-picker-nav,
-#calendarPicker .calendar-year-btn,
-#calendarPicker .calendar-day{
-  all:unset !important;
-  -webkit-appearance:none !important;
-  appearance:none !important;
-  box-sizing:border-box !important;
-  border:0 !important;
-  outline:0 !important;
-  margin:0 !important;
-  padding:0 !important;
-  background:transparent !important;
-  color:#111216 !important;
-  font-family:"kr", "cn", system-ui, sans-serif !important;
-  line-height:1 !important;
-  text-align:center !important;
-  cursor:pointer !important;
-  -webkit-tap-highlight-color:transparent !important;
-}
-
-#calendarPicker .calendar-picker-title{
-  min-width:0 !important;
-  height:30px !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  border-radius:999px !important;
-  font-size:16px !important;
-  font-weight:700 !important;
-  white-space:nowrap !important;
-}
-
-#calendarPicker .calendar-picker-nav{
-  width:30px !important;
-  height:30px !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  border-radius:50% !important;
-  font-size:24px !important;
-  font-weight:700 !important;
-}
-
-#calendarPicker .calendar-picker-year-panel{
-  display:none !important;
-  grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
-  gap:6px !important;
-  padding:6px 4px 10px !important;
-}
-
-#calendarPicker.calendar-picker.year-open .calendar-picker-year-panel{
-  display:grid !important;
-}
-
-#calendarPicker.calendar-picker.year-open .calendar-picker-weekdays,
-#calendarPicker.calendar-picker.year-open .calendar-picker-grid{
-  display:none !important;
-}
-
-#calendarPicker .calendar-year-btn{
-  height:30px !important;
-  border-radius:999px !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  font-size:14px !important;
-}
-
-#calendarPicker .calendar-year-btn.active{
-  background:var(--theme-panel) !important;
-  color:#ffffff !important;
-  font-weight:700 !important;
-}
-
-#calendarPicker .calendar-picker-weekdays,
-#calendarPicker .calendar-picker-grid{
-  display:grid !important;
-  grid-template-columns:repeat(7, minmax(0, 1fr)) !important;
-  gap:3px !important;
-  width:100% !important;
-}
-
-#calendarPicker .calendar-picker-weekdays{
-  margin:0 0 5px !important;
-  color:#6f737c !important;
-  font-size:14px !important;
-}
-
-#calendarPicker .calendar-picker-weekdays span{
-  height:20px !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-
-#calendarPicker .calendar-day{
-  height:28px !important;
-  border-radius:50% !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  font-size:14px !important;
-  position:relative !important;
-}
-
-#calendarPicker .calendar-day.has-message{
-  background:var(--theme-panel) !important;
-  color:#ffffff !important;
-  font-weight:700 !important;
-}
-
-#calendarPicker .calendar-day.has-message::after{
-  content:"" !important;
-  position:absolute !important;
-  left:50% !important;
-  bottom:2px !important;
-  width:4px !important;
-  height:4px !important;
-  border-radius:50% !important;
-  background:#ffffff !important;
-  transform:translateX(-50%) !important;
-}
-
-#calendarPicker .calendar-day.today:not(.has-message){
-  box-shadow:0 0 0 2px var(--theme-panel) inset !important;
-}
-
-#calendarPicker .calendar-day.other-month{
-  color:#b3b7bf !important;
-}
-
-#calendarPicker .calendar-day:disabled{
-  cursor:default !important;
-  opacity:.28 !important;
-}
-
-#calendarPicker .calendar-day:disabled::after{
-  display:none !important;
-}
-
-@media (max-width:430px){
-  #calendarPicker.calendar-picker{
-    width:220px !important;
-    max-width:calc(100vw - 20px) !important;
-    border-radius:16px !important;
-  }
-
-  #calendarPicker .calendar-day{
-    height:27px !important;
-    font-size:13px !important;
-  }
-
-  #calendarPicker .calendar-picker-title{
-    font-size:15px !important;
-  }
+.audio-bubble .audio-play,
+.audio-bubble .audio-duration{
+  position:relative;
+  z-index:1;
 }
