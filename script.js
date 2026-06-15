@@ -293,6 +293,13 @@ function addDateDivider(date){
   const div = document.createElement("div");
   div.className = "date-divider";
   div.dataset.date = date;
+
+  const normalized = normalizeDateText(date);
+  const match = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(match){
+    div.dataset.normalizedDate = `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+  }
+
   div.textContent = formatDateLabel(date);
   chat.appendChild(div);
 }
@@ -751,26 +758,65 @@ function renderAllMessagesForDateJump(data){
   });
 }
 
+function getNormalizedDateKey(date){
+  const normalized = normalizeDateText(date);
+  const match = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(!match) return "";
+
+  return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+}
+
+function getDateDividerByKey(dateKey){
+  const normalizedKey = getNormalizedDateKey(dateKey);
+
+  if(normalizedKey){
+    const byNormalized = document.querySelector(`[data-normalized-date="${CSS.escape(normalizedKey)}"]`);
+    if(byNormalized) return byNormalized;
+  }
+
+  return document.querySelector(`[data-date="${CSS.escape(dateKey)}"]`);
+}
+
+function scrollChatToElement(target, behavior = "auto"){
+  if(!target) return;
+
+  const chatRect = chat.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const top = chat.scrollTop + targetRect.top - chatRect.top - 12;
+
+  chat.scrollTo({
+    top:Math.max(0, top),
+    behavior
+  });
+}
+
 function waitAndScrollToDate(targetDate, retry = 0){
-  const target = document.querySelector(`[data-date="${CSS.escape(targetDate)}"]`);
+  const target = getDateDividerByKey(targetDate);
 
   if(target){
-    chat.scrollTo({
-      top:Math.max(0, target.offsetTop - 12),
-      behavior:"smooth"
+    // 第一次先立即定位，避免太後面的日期因為大量 DOM / 圖片載入造成位置偏掉。
+    scrollChatToElement(target, "auto");
+
+    // 再連續校正幾次，等圖片、影片縮圖高度穩定後，位置才會準。
+    [80, 220, 480, 900].forEach((delay, index) => {
+      setTimeout(() => {
+        const freshTarget = getDateDividerByKey(targetDate);
+        if(!freshTarget) return;
+
+        scrollChatToElement(freshTarget, index === 3 ? "smooth" : "auto");
+
+        if(index === 3){
+          flashDateDivider(freshTarget);
+        }
+      }, delay);
     });
 
-    setTimeout(() => flashDateDivider(target), 300);
-    return true;
+    return;
   }
 
   if(retry < 30){
-    setTimeout(() => {
-      waitAndScrollToDate(targetDate, retry + 1);
-    }, 100);
+    setTimeout(() => waitAndScrollToDate(targetDate, retry + 1), 100);
   }
-
-  return false;
 }
 
 function scrollToDate(keyword){
@@ -791,9 +837,9 @@ function scrollToDate(keyword){
   // 日期可能還沒被分批渲染出來，所以點日曆跳轉時先完整渲染一次。
   renderAllMessagesForDateJump(allMessages);
 
-  setTimeout(() => {
+  requestAnimationFrame(() => {
     waitAndScrollToDate(targetDate);
-  }, 0);
+  });
 
   return true;
 }
@@ -1492,7 +1538,7 @@ function positionCalendarPicker(anchor){
   const rect = anchor?.getBoundingClientRect?.();
   const appRect = document.querySelector(".app")?.getBoundingClientRect?.();
 
-  const pickerWidth = 248;
+  const pickerWidth = Math.min(220, window.innerWidth - 20);
   const baseLeft = rect ? rect.left : 16;
   const baseTop = rect ? rect.bottom + 8 : 70;
   const minLeft = appRect ? appRect.left + 10 : 10;

@@ -1618,7 +1618,7 @@ button.nav-btn.menu-btn{
 
 @media (max-width:430px){
   .calendar-picker{
-    width:248px;
-    border-radius:16px;
+    width:220px;
+    max-width:calc(100vw - 20px);
   }
 }
