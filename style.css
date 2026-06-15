@@ -141,12 +141,42 @@ input{
 }
 
 .header-actions{
+  width:78px;
+  min-width:78px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  justify-self:end;
+  gap:5px;
+  transform:translateX(4px);
+}
+
+
+.header-left-actions{
   width:86px;
   min-width:86px;
   display:flex;
   align-items:center;
-  justify-content:flex-end;
-  gap:10px;
+  justify-content:flex-start;
+  gap:3px;
+  justify-self:start;
+}
+
+.calendar-btn{
+  width:30px;
+  height:30px;
+  min-width:34px;
+  min-height:34px;
+  padding:0;
+  overflow:hidden;
+}
+
+.calendar-btn img{
+  width:31px;
+  height:31px;
+  display:block;
+  object-fit:contain;
+  pointer-events:none;
 }
 
 .placeholder-actions{
@@ -173,7 +203,7 @@ button.nav-btn{
   border-radius:50%;
   color:inherit;
   font-family:inherit;
-  font-size:28px;
+  font-size:24px;
   font-weight:400;
   line-height:1;
   text-align:center;
@@ -196,18 +226,14 @@ button.nav-btn.back-btn{
   top:-3px;
 }
 
-.viewer-back-btn{
-  position:relative;
+.viewer-back-btn .back-icon{
+
   left:-5px;
   top:-3px;
-}
 
-.viewer-back-btn .back-icon{
-  left:0;
-  top:0;
 }
 .settings-edit-header .back-icon{
-  position:relative;
+
   left:7px;
   top:-3px;
 
@@ -226,13 +252,30 @@ button.nav-btn:hover{
 button.nav-btn:active,
 .viewer-btn:active,
 .setting-item:active{
-  opacity:.85;
+  transform:scale(.96);
 }
 
 button.nav-btn.menu-btn{
-  font-size:28px;
+  font-size:24px;
   position:relative;
   top:1px;
+}
+
+
+.header-actions .nav-btn{
+  width:32px;
+  height:28px;
+  min-width:32px;
+  min-height:28px;
+}
+
+.header-actions .menu-btn{
+  font-size:24px;
+}
+
+.header-actions .icon-search{
+  width:18px;
+  height:18px;
 }
 
 .close-btn{
@@ -242,8 +285,8 @@ button.nav-btn.menu-btn{
 .icon-search{
   position:relative;
   display:block;
-  width:20px;
-  height:20px;
+  width:18px;
+  height:18px;
   border:3px solid currentColor;
   border-radius:50%;
   opacity:.9;
@@ -254,7 +297,7 @@ button.nav-btn.menu-btn{
   position:absolute;
   right:-7px;
   bottom:-4px;
-  width:9px;
+  width:8px;
   height:3px;
   border-radius:999px;
   background:currentColor;
@@ -372,7 +415,7 @@ button.nav-btn.menu-btn{
 .artist-name{
   margin-bottom:4px;
   color:#888;
-  font-size:16px;
+  font-size:14px;
 }
 
 .message-line{
@@ -566,7 +609,7 @@ button.nav-btn.menu-btn{
 
 .audio-play{
   color:#d2d3d8;
-  font-size:16px;
+  font-size:14px;
   line-height:1;
   position:relative;
   top:0px;
@@ -620,7 +663,7 @@ button.nav-btn.menu-btn{
   height:22px;
   margin-top:6px;
   color:var(--theme-setting-value);
-  font-size:18px;
+  font-size:14px;
   line-height:22px;
   font-family:"kr", "cn", system-ui, sans-serif;
   white-space:nowrap;
@@ -642,21 +685,8 @@ button.nav-btn.menu-btn{
   justify-content:space-between;
 }
 
-.settings-edit-header .header-bar{
-  width:100%;
-}
-
 .settings-edit-header .back-btn{
-  margin-left:0;
-}
-
-.settings-edit-header .back-icon{
-  left:-1px;
-  top:-3px;
-}
-
-.settings-edit-header .settings-save-btn{
-  justify-self:end;
+  margin-left:-8px;
 }
 
 .settings-save-btn{
@@ -705,7 +735,7 @@ button.nav-btn.menu-btn{
   display:block;
   margin-bottom:14px;
   color:var(--theme-setting-value);
-  font-size:18px;
+  font-size:14px;
   line-height:1;
   font-family:"kr", "cn", system-ui, sans-serif;
 }
@@ -921,7 +951,7 @@ button.nav-btn.menu-btn{
   left:50%;
   transform:translateX(-50%);
   color:#fff;
-  font-size:16px;
+  font-size:14px;
   font-weight:700;
   text-shadow:0 2px 8px rgba(0,0,0,.2);
   white-space:nowrap;
@@ -999,7 +1029,7 @@ button.nav-btn.menu-btn{
   all:unset;
   box-sizing:border-box;
   color:white;
-  font-size:16px;
+  font-size:14px;
   cursor:pointer;
 }
 
@@ -1092,7 +1122,7 @@ button.nav-btn.menu-btn{
   min-height:72px;
   margin-bottom:12px;
   padding:12px 14px;
-  border-radius:18px;
+  border-radius:16px;
   display:grid;
   grid-template-columns:42px minmax(0, 1fr) auto;
   align-items:center;
@@ -1109,8 +1139,8 @@ button.nav-btn.menu-btn{
 }
 
 .theme-card-swatch{
-  width:34px;
-  height:34px;
+  width:30px;
+  height:30px;
   border-radius:50%;
   box-shadow:
     0 0 0 1px rgba(0,0,0,.12) inset,
@@ -1131,7 +1161,7 @@ button.nav-btn.menu-btn{
 
 .theme-card-title{
   color:#111216;
-  font-size:18px;
+  font-size:14px;
   line-height:1.15;
   font-family:"kr", "cn", system-ui, sans-serif;
   white-space:nowrap;
@@ -1217,6 +1247,38 @@ button.nav-btn.menu-btn{
   background:rgba(120,120,120,.95);
 }
 
+@media (max-width:430px){
+  .app,
+  .settings-page{
+    max-width:none;
+    width:100%;
+    height:100dvh;
+    border:0;
+  }
+
+  .header{
+    height:calc(58px + env(safe-area-inset-top));
+    padding-top:env(safe-area-inset-top);
+    padding-left:18px;
+    padding-right:18px;
+  }
+
+  .input-area{
+    padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .header-actions{
+    width:78px;
+    min-width:78px;
+    gap:5px;
+    transform:translateX(4px);
+  }
+
+  .header-search-box{
+    height:42px;
+  }
+}
+
 .theme-card-actions{
   display:flex;
   gap:8px;
@@ -1241,17 +1303,13 @@ button.nav-btn.menu-btn{
   min-width:0;
 }
 
-/* === 媒體預覽頁：照片 / 影片 / 語音共用 === */
 #mediaViewerBody{
   position:relative;
-  flex:1;
   width:100%;
   height:100%;
-  min-height:0;
   overflow:hidden;
   padding:0;
   margin:0;
-  box-sizing:border-box;
 }
 
 .media-viewer-track{
@@ -1275,9 +1333,9 @@ button.nav-btn.menu-btn{
   overflow:hidden;
   padding:0;
   margin:0;
-  box-sizing:border-box;
 }
 
+/* 圖片/影片維持滿版，但不變形 */
 .media-viewer-slide .viewer-media{
   width:100%;
   height:100%;
@@ -1287,110 +1345,280 @@ button.nav-btn.menu-btn{
   display:block;
 }
 
-/* 語音預覽在 slide 裡的版型 */
+/* === 媒體預覽滑動修正：使用容器寬度，避免手機版跑版 === */
+#mediaViewerBody{
+  position:relative !important;
+  width:100% !important;
+  height:100% !important;
+  overflow:hidden !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+
+.media-viewer-track{
+  width:100% !important;
+  height:100% !important;
+  display:flex !important;
+  gap:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  will-change:transform !important;
+}
+
+.media-viewer-slide{
+  width:100% !important;
+  min-width:100% !important;
+  max-width:100% !important;
+  height:100% !important;
+  flex:0 0 100% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:hidden !important;
+  padding:0 !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+
+.media-viewer-slide .viewer-media{
+  width:100% !important;
+  height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  display:block !important;
+}
+
+/* === 語音預覽放進左右滑 slide 後的修正 === */
 .media-viewer-slide .audio-viewer-page{
-  position:relative;
-  width:100%;
-  height:100%;
-  min-width:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  background:var(--theme-audio-bg);
-  box-sizing:border-box;
-  padding:40px 24px 110px;
+  width:100% !important;
+  height:100% !important;
+  min-width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:var(--theme-audio-bg) !important;
+  box-sizing:border-box !important;
+  padding:40px 24px 80px !important;
+  position:relative !important;
 }
 
 .media-viewer-slide .audio-viewer-center{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  transform:none;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 auto !important;
+  transform:translateY(-28px) !important;
 }
 
 .media-viewer-slide .audio-viewer-avatar{
-  width:160px;
-  height:160px;
-  margin-bottom:22px;
-  border-radius:50%;
-  background-color:var(--theme-media-card);
-  background-image:var(--avatar-image);
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  box-shadow:0 10px 30px rgba(0,0,0,.18);
-  flex:0 0 auto;
+  width:180px !important;
+  height:180px !important;
+  border-radius:50% !important;
+  background-color:var(--theme-media-card) !important;
+  background-image:var(--avatar-image) !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+  flex:0 0 auto !important;
+  margin-bottom:22px !important;
+  box-shadow:0 10px 30px rgba(0,0,0,.18) !important;
 }
 
 .media-viewer-slide .audio-viewer-name{
-  display:block;
-  color:white;
-  font-size:28px;
-  font-weight:700;
-  font-family:"kr", "cn", system-ui, sans-serif;
+  display:block !important;
+  margin-top:0 !important;
+  color:#ffffff !important;
+  font-size:30px !important;
+  font-weight:700 !important;
 }
 
 .media-viewer-slide .audio-viewer-player{
-  position:absolute;
-  left:50%;
-  bottom:28px;
-  width:min(360px, 86%);
-  max-width:360px;
-  transform:translateX(-50%);
+  position:absolute !important;
+  left:50% !important;
+  bottom:28px !important;
+  width:min(360px, 86vw) !important;
+  max-width:360px !important;
+  transform:translateX(-50%) !important;
+  flex:0 0 auto !important;
 }
 
 .media-viewer-slide .audio-viewer-player audio{
-  width:100%;
+  width:100% !important;
+  display:block !important;
+}
+
+/* === 訊息日期小日曆：只顯示在左上日曆圖附近 === */
+.calendar-picker{
+  position:fixed;
+  z-index:10020;
+  width:248px;
+  display:none;
+  padding:10px 10px 10px;
+  border-radius:16px;
+  background:#ffffff;
+  color:#111216;
+  box-shadow:0 14px 36px rgba(0,0,0,.28);
+  font-family:"kr", "cn", system-ui, sans-serif;
+}
+
+.calendar-picker.open{
   display:block;
 }
 
+.calendar-picker-header{
+  height:30px;
+  display:grid;
+  grid-template-columns:32px minmax(0, 1fr) 32px;
+  align-items:center;
+  margin-bottom:6px;
+}
+
+.calendar-picker-title{
+  all:unset;
+  box-sizing:border-box;
+  text-align:center;
+  font-size:16px;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+  border-radius:999px;
+  padding:6px 8px;
+}
+
+.calendar-picker-title:active{
+  background:rgba(0,0,0,.08);
+}
+
+.calendar-picker-nav{
+  all:unset;
+  width:30px;
+  height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  color:#111216;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.calendar-picker-nav:active{
+  background:rgba(0,0,0,.08);
+}
+
+
+.calendar-picker-year-panel{
+  display:none;
+  grid-template-columns:repeat(3, 1fr);
+  gap:6px;
+  padding:6px 4px 10px;
+}
+
+.calendar-picker.year-open .calendar-picker-year-panel{
+  display:grid;
+}
+
+.calendar-picker.year-open .calendar-picker-weekdays,
+.calendar-picker.year-open .calendar-picker-grid{
+  display:none;
+}
+
+.calendar-year-btn{
+  all:unset;
+  height:30px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#111216;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.calendar-year-btn.active{
+  background:var(--theme-panel);
+  color:white;
+  font-weight:700;
+}
+
+.calendar-picker-weekdays,
+.calendar-picker-grid{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:3px;
+}
+
+.calendar-picker-weekdays{
+  margin-bottom:5px;
+  color:#6f737c;
+  font-size:14px;
+  text-align:center;
+}
+
+.calendar-picker-weekdays span{
+  height:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.calendar-day{
+  all:unset;
+  height:28px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#111216;
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+  position:relative;
+}
+
+.calendar-day.has-message{
+  background:var(--theme-panel);
+  color:white;
+  font-weight:700;
+}
+
+.calendar-day.has-message::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:2px;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:white;
+  transform:translateX(-50%);
+}
+
+.calendar-day.today:not(.has-message){
+  box-shadow:0 0 0 2px #7fb0ee inset;
+}
+
+.calendar-day.other-month{
+  color:#b3b7bf;
+}
+
+.calendar-day:disabled{
+  cursor:default;
+  opacity:.28;
+}
+
+.calendar-day:disabled::after{
+  display:none;
+}
+
 @media (max-width:430px){
-  .app,
-  .settings-page,
-  .media-viewer{
-    max-width:none;
-    width:100%;
-    height:100dvh;
-    border:0;
-  }
-
-  .header,
-  .media-viewer-header{
-    height:calc(58px + env(safe-area-inset-top));
-    padding-top:env(safe-area-inset-top);
-  }
-
-  .header{
-    padding-left:18px;
-    padding-right:18px;
-  }
-
-  .input-area{
-    padding-bottom:calc(12px + env(safe-area-inset-bottom));
-  }
-
-  .header-actions{
-    width:86px;
-    min-width:86px;
-    gap:10px;
-  }
-
-  .header-search-box{
-    height:42px;
-  }
-
-  .media-viewer-slide .audio-viewer-page{
-    padding:40px 24px calc(110px + env(safe-area-inset-bottom));
-  }
-
-  .media-viewer-slide .audio-viewer-avatar{
-    width:150px;
-    height:150px;
-  }
-
-  .media-viewer-slide .audio-viewer-player{
-    bottom:calc(28px + env(safe-area-inset-bottom));
+  .calendar-picker{
+    width:248px;
+    border-radius:16px;
   }
 }

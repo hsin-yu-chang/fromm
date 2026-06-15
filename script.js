@@ -706,6 +706,73 @@ function dateKeyMatches(dateKey, parsed){
   return true;
 }
 
+function flashDateDivider(target){
+  if(!target) return;
+
+  target.animate(
+    [
+      { backgroundColor:"#fff3a3", boxShadow:"0 0 0 0 rgba(255, 218, 74, .85)", transform:"scale(1)" },
+      { backgroundColor:"#ffe36f", boxShadow:"0 0 0 8px rgba(255, 218, 74, .22)", transform:"scale(1.04)" },
+      { backgroundColor:"#fff3a3", boxShadow:"0 0 0 0 rgba(255, 218, 74, 0)", transform:"scale(1)" },
+      { backgroundColor:"", boxShadow:"", transform:"scale(1)" }
+    ],
+    {
+      duration:900,
+      iterations:2,
+      easing:"ease-in-out"
+    }
+  );
+}
+
+function renderAllMessagesForDateJump(data){
+  chat.innerHTML = "";
+
+  const dates = Object.keys(data).sort((a, b) => {
+    const diff = dateSortValue(a) - dateSortValue(b);
+    return diff || String(a).localeCompare(String(b));
+  });
+
+  flatRenderItems = flattenMessagesForRender(
+    dates.reduce((obj, date) => {
+      obj[date] = data[date];
+      return obj;
+    }, {})
+  );
+
+  renderedItemCount = flatRenderItems.length;
+  isAppendingMessages = false;
+
+  dates.forEach(date => {
+    addDateDivider(date);
+
+    (data[date] || []).forEach(item => {
+      addArtistMessage(item);
+    });
+  });
+}
+
+function waitAndScrollToDate(targetDate, retry = 0){
+  const target = document.querySelector(`[data-date="${CSS.escape(targetDate)}"]`);
+
+  if(target){
+    chat.scrollTo({
+      top:Math.max(0, target.offsetTop - 12),
+      behavior:"smooth"
+    });
+
+    setTimeout(() => flashDateDivider(target), 300);
+    return true;
+  }
+
+  if(retry < 30){
+    setTimeout(() => {
+      waitAndScrollToDate(targetDate, retry + 1);
+    }, 100);
+  }
+
+  return false;
+}
+
 function scrollToDate(keyword){
   const parsed = parseSearchDate(keyword);
   if(!parsed) return false;
@@ -721,15 +788,12 @@ function scrollToDate(keyword){
 
   const targetDate = matchedDates[0];
 
-  renderMessages(allMessages);
+  // 日期可能還沒被分批渲染出來，所以點日曆跳轉時先完整渲染一次。
+  renderAllMessagesForDateJump(allMessages);
 
-  requestAnimationFrame(() => {
-    const target = document.querySelector(`[data-date="${CSS.escape(targetDate)}"]`);
-
-    if(target){
-      chat.scrollTop = Math.max(0, target.offsetTop - chat.offsetTop - 12);
-    }
-  });
+  setTimeout(() => {
+    waitAndScrollToDate(targetDate);
+  }, 0);
 
   return true;
 }
@@ -1163,6 +1227,7 @@ function showPage(page){
     return;
   }
 
+  setupMainCalendarButton();
   if(app) app.style.display = "flex";
 }
 
@@ -1182,6 +1247,284 @@ function showSettings(){
 function showChat(){
   setPage("chat");
 }
+
+function setupMainCalendarButton(){
+  const normalHeader = document.getElementById("headerNormal");
+  if(!normalHeader) return;
+
+  const headerBar = normalHeader.querySelector(".header-bar") || normalHeader;
+  if(headerBar.querySelector(".calendar-btn")) return;
+
+  let leftGroup = headerBar.querySelector(".header-left-actions");
+
+  if(!leftGroup){
+    leftGroup = document.createElement("div");
+    leftGroup.className = "header-left-actions";
+
+    const firstButton = Array.from(headerBar.children).find(el => {
+      return el.matches?.("button.nav-btn, button.back-btn, button");
+    });
+
+    if(firstButton){
+      headerBar.insertBefore(leftGroup, firstButton);
+      leftGroup.appendChild(firstButton);
+    }else{
+      headerBar.insertBefore(leftGroup, headerBar.firstChild);
+    }
+  }
+
+  const calendarBtn = document.createElement("button");
+  calendarBtn.className = "nav-btn calendar-btn";
+  calendarBtn.type = "button";
+  calendarBtn.setAttribute("aria-label", "開啟日曆");
+  calendarBtn.onclick = openCalendarPage;
+  calendarBtn.innerHTML = `<img src="./icons/calendar1.png" alt="日曆">`;
+
+  leftGroup.appendChild(calendarBtn);
+}
+
+function getMessageDateSet(){
+  const set = new Set();
+
+  Object.keys(allMessages || {}).forEach(date => {
+    const normalized = normalizeDateText(date);
+    const match = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(!match) return;
+
+    const y = match[1];
+    const m = match[2].padStart(2, "0");
+    const d = match[3].padStart(2, "0");
+    set.add(`${y}-${m}-${d}`);
+  });
+
+  return set;
+}
+
+function getFirstMessageDateKey(){
+  const keys = [...getMessageDateSet()].sort();
+  return keys[0] || "";
+}
+
+function getMessageYears(){
+  return [...new Set([...getMessageDateSet()].map(key => key.slice(0, 4)))].sort();
+}
+
+function getCalendarBaseDate(){
+  const first = getFirstMessageDateKey();
+  if(first){
+    const [y, m, d] = first.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date();
+}
+
+let calendarPickerYear = 0;
+let calendarPickerMonth = 0;
+
+function ensureCalendarPicker(){
+  let picker = document.getElementById("calendarPicker");
+  if(picker) return picker;
+
+  picker = document.createElement("div");
+  picker.id = "calendarPicker";
+  picker.className = "calendar-picker";
+  picker.innerHTML = `
+    <div class="calendar-picker-header">
+      <button class="calendar-picker-nav" type="button" data-calendar-action="prev" aria-label="上個月">‹</button>
+      <button class="calendar-picker-title" id="calendarPickerTitle" type="button" data-calendar-action="year" aria-label="選擇年份"></button>
+      <button class="calendar-picker-nav" type="button" data-calendar-action="next" aria-label="下個月">›</button>
+    </div>
+    <div class="calendar-picker-year-panel" id="calendarPickerYearPanel"></div>
+    <div class="calendar-picker-weekdays">
+      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+    </div>
+    <div class="calendar-picker-grid" id="calendarPickerGrid"></div>
+  `;
+
+  picker.addEventListener("click", e => {
+    const yearBtn = e.target.closest(".calendar-year-btn");
+    if(yearBtn){
+      e.preventDefault();
+      e.stopPropagation();
+
+      calendarPickerYear = Number(yearBtn.dataset.calendarYear);
+
+      const firstDateInYear = [...getMessageDateSet()]
+        .filter(d => d.startsWith(String(calendarPickerYear)))
+        .sort()[0];
+
+      if(firstDateInYear){
+        calendarPickerMonth = Number(firstDateInYear.split("-")[1]) - 1;
+      }
+
+      picker.classList.remove("year-open");
+      renderCalendarPicker();
+      return;
+    }
+
+    const nav = e.target.closest("[data-calendar-action]");
+    if(nav){
+      const action = nav.dataset.calendarAction;
+
+      if(action === "year"){
+        picker.classList.toggle("year-open");
+        return;
+      }
+
+      picker.classList.remove("year-open");
+
+      if(action === "prev"){
+        calendarPickerMonth -= 1;
+      }else if(action === "next"){
+        calendarPickerMonth += 1;
+      }
+
+      if(calendarPickerMonth < 0){
+        calendarPickerMonth = 11;
+        calendarPickerYear -= 1;
+      }
+
+      if(calendarPickerMonth > 11){
+        calendarPickerMonth = 0;
+        calendarPickerYear += 1;
+      }
+
+      renderCalendarPicker();
+      return;
+    }
+
+    const dayBtn = e.target.closest("[data-date-key]");
+    if(dayBtn && !dayBtn.disabled){
+      const dateKey = dayBtn.dataset.dateKey;
+      closeCalendarPicker();
+      scrollToDate(dateKey);
+    }
+  });
+
+  document.addEventListener("click", e => {
+    const target = e.target;
+    if(!picker.classList.contains("open")) return;
+    if(target.closest?.("#calendarPicker")) return;
+    if(target.closest?.(".calendar-btn")) return;
+    closeCalendarPicker();
+  });
+
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape") closeCalendarPicker();
+  });
+
+  document.body.appendChild(picker);
+  return picker;
+}
+
+function renderCalendarPicker(){
+  const picker = ensureCalendarPicker();
+  const title = picker.querySelector("#calendarPickerTitle");
+  const yearPanel = picker.querySelector("#calendarPickerYearPanel");
+  const grid = picker.querySelector("#calendarPickerGrid");
+  const messageDates = getMessageDateSet();
+
+  const year = calendarPickerYear;
+  const month = calendarPickerMonth;
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  if(title){
+    title.textContent = `${year}年${String(month + 1).padStart(2, "0")}月`;
+  }
+
+  if(yearPanel){
+    const years = getMessageYears().sort((a,b)=>b-a);
+    yearPanel.innerHTML = years.map(y => `
+      <button class="calendar-year-btn ${Number(y) === year ? "active" : ""}" type="button" data-calendar-year="${y}">${y}</button>
+    `).join("");
+  }
+
+  let html = "";
+
+  for(let i = 0; i < 42; i++){
+    const dayNumber = i - firstDay + 1;
+    let y = year;
+    let m = month;
+    let d = dayNumber;
+    let otherMonth = false;
+
+    if(dayNumber <= 0){
+      m = month - 1;
+      if(m < 0){
+        m = 11;
+        y -= 1;
+      }
+      d = prevMonthDays + dayNumber;
+      otherMonth = true;
+    }else if(dayNumber > daysInMonth){
+      m = month + 1;
+      if(m > 11){
+        m = 0;
+        y += 1;
+      }
+      d = dayNumber - daysInMonth;
+      otherMonth = true;
+    }
+
+    const dateKey = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const hasMessage = messageDates.has(dateKey);
+    const classes = ["calendar-day"];
+    if(otherMonth) classes.push("other-month");
+    if(hasMessage) classes.push("has-message");
+    if(dateKey === todayKey) classes.push("today");
+
+    html += `
+      <button class="${classes.join(" ")}" type="button" data-date-key="${dateKey}" ${hasMessage ? "" : "disabled"}>
+        ${d}
+      </button>
+    `;
+  }
+
+  if(grid) grid.innerHTML = html;
+}
+
+function positionCalendarPicker(anchor){
+  const picker = ensureCalendarPicker();
+  const rect = anchor?.getBoundingClientRect?.();
+  const appRect = document.querySelector(".app")?.getBoundingClientRect?.();
+
+  const pickerWidth = 248;
+  const baseLeft = rect ? rect.left : 16;
+  const baseTop = rect ? rect.bottom + 8 : 70;
+  const minLeft = appRect ? appRect.left + 10 : 10;
+  const maxLeft = appRect ? appRect.right - pickerWidth - 10 : window.innerWidth - pickerWidth - 10;
+
+  let left = Math.max(minLeft, Math.min(baseLeft, maxLeft));
+  let top = Math.max(10, baseTop);
+
+  picker.style.left = `${left}px`;
+  picker.style.top = `${top}px`;
+}
+
+function openCalendarPage(event){
+  const picker = ensureCalendarPicker();
+  const baseDate = getCalendarBaseDate();
+
+  if(!calendarPickerYear || !Number.isFinite(calendarPickerYear)){
+  calendarPickerYear = baseDate.getFullYear();
+  calendarPickerMonth = baseDate.getMonth();
+}
+
+  picker.classList.remove("year-open");
+  renderCalendarPicker();
+  positionCalendarPicker(event?.currentTarget || document.querySelector(".calendar-btn"));
+  picker.classList.add("open");
+}
+
+function closeCalendarPicker(){
+  const picker = document.getElementById("calendarPicker");
+  if(picker) picker.classList.remove("open");
+}
+
 
 function ensureMediaViewer(){
   let viewer = document.getElementById("mediaViewer");
@@ -1384,18 +1727,18 @@ function renderMediaViewerTrack(){
   updateMediaViewerHeaderByEntry(currentEntry);
 
   viewerBody.innerHTML = `
-    <div class="media-viewer-track" id="mediaViewerTrack">
-      <div class="media-viewer-slide">
-        ${getMediaViewerContentHtmlByEntry(prevEntry, false)}
-      </div>
-      <div class="media-viewer-slide">
-        ${getMediaViewerContentHtmlByEntry(currentEntry, true)}
-      </div>
-      <div class="media-viewer-slide">
-        ${getMediaViewerContentHtmlByEntry(nextEntry, false)}
-      </div>
+  <div class="media-viewer-track" id="mediaViewerTrack">
+    <div class="media-viewer-slide">
+      ${getMediaViewerContentHtmlByEntry(prevEntry, false)}
     </div>
-  `;
+    <div class="media-viewer-slide">
+      ${getMediaViewerContentHtmlByEntry(currentEntry, true)}
+    </div>
+    <div class="media-viewer-slide">
+      ${getMediaViewerContentHtmlByEntry(nextEntry, false)}
+    </div>
+  </div>
+`;
 
   const track = document.getElementById("mediaViewerTrack");
   if(track){
@@ -2049,15 +2392,10 @@ function ensureSettingsEditPage(){
   page.className = "settings-page settings-edit-page";
   page.innerHTML = `
     <div class="header settings-edit-header">
-      <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回上一頁" onclick="backFromSettingsEdit()">
+      <button class="nav-btn back-btn" type="button" aria-label="返回上一頁" onclick="backFromSettingsEdit()">
           <span class="back-icon">‹</span>
         </button>
-
-        <div class="name"></div>
-
         <button class="settings-save-btn" id="settingsEditSaveBtn" type="button" onclick="saveSettingsEdit()">儲存</button>
-      </div>
     </div>
 
     <div class="settings-edit-content">
@@ -2327,6 +2665,7 @@ loadAllMessageFiles()
     const initialPage = normalizePage(location.hash.replace("#", "") || "chat");
     initHistoryPage(initialPage);
     showPage(initialPage);
+    setupMainCalendarButton();
 
     const searchInput = document.getElementById("searchInput");
     if(searchInput){
