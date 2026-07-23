@@ -476,7 +476,7 @@ const FROMM_FRIENDS = [
     avatar:"./icons/profile.jpg",
     subtitle:"😚",
     likes:"+142",
-    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+    messages:["./messages/messages.json", "./messages/fromm_messages.json", ""./messages/sunwoo_2021-08-27_to_2021-09-24_compact_format.json""]
   },
   {
     id:"mrggom",
@@ -3166,6 +3166,7 @@ document.addEventListener("keydown", e => {
 });
 
 const MESSAGE_FILES = [
+  "./messages/sunwoo_2021-08-27_to_2021-09-24_compact_format.json",
   "./messages/messages.json",
   "./messages/fromm_messages.json",
 ];
