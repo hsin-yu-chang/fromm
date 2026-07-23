@@ -473,7 +473,7 @@ const FROMM_FRIENDS = [
   {
     id:"sunwoo",
     name:"선우",
-    avatar:"./icons/profile.jpg",
+    avatar:"./icons/profile.jfif",
     subtitle:"😚",
     likes:"+142",
     messages:["./messages/messages.json", "./messages/fromm_messages.json", "./messages/sunwoo_2021-08-27_to_2021-09-24_compact_format.json"]
