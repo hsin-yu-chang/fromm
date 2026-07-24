@@ -1,6 +1,6 @@
 import json
 
-input_path = r"..\messages\fromm_messages.json"
+input_path = r"../messages/sw_fromm.json"
 output_path = r"fromm_messages_fixed.json"
 
 with open(input_path, "r", encoding="utf-8") as f:

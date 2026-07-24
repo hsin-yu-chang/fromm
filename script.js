@@ -19,11 +19,9 @@ function renderBaseLayout(){
       <div class="main-friend-list" id="mainFriendList"></div>
 
       <div class="main-section-divider"></div>
-      <div class="main-section-title">fromm朋友 0</div>
 
-      <div class="main-bottom-panel">
-        <div class="main-interest-title">感興趣的藝人 4 <span>編輯</span></div>
-      </div>
+
+
       <div class="main-bottom-nav">
         <button class="main-bottom-item active" type="button">☆</button>
         <button class="main-bottom-item" type="button">💬</button>
@@ -475,48 +473,40 @@ const FROMM_FRIENDS = [
     name:"선우",
     avatar:"./icons/profile.jfif",
     subtitle:"😚",
-    likes:"+142",
-    messages:["./messages/messages.json", "./messages/fromm_messages.json", "./messages/sunwoo_2021-08-27_to_2021-09-24_compact_format.json"]
-  },
-  {
-    id:"mrggom",
-    name:"Mr.곰",
-    avatar:"./icons/profile.jpg",
-    subtitle:"사요.호슈 mr_ggom",
-    likes:"+521",
-    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+    likes:"+412",
+    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
   },
   {
     id:"younghoon",
     name:"영훈이",
     avatar:"./icons/profile.jpg",
     subtitle:"더...",
-    likes:"+45",
-    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+    likes:"+88",
+    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
   },
   {
-    id:"hyunjae",
+    id:"youngjae",
     name:"영재💛",
     avatar:"./icons/profile.jpg",
     subtitle:"I love THE B 💗",
-    likes:"+45",
-    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+    likes:"+1222",
+    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
   },
   {
     id:"junyoung",
     name:"준영이",
     avatar:"./icons/profile.jpg",
     subtitle:"💞",
-    likes:"+23",
-    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+    likes:"+530",
+    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
   },
   {
-    id:"kkojjil",
+    id:"hyunjae",
     name:"꼬질이",
     avatar:"./icons/profile.jpg",
     subtitle:"",
-    likes:"+12",
-    messages:["./messages/messages.json", "./messages/fromm_messages.json"]
+    likes:"+913",
+    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
   }
 ];
 
@@ -978,7 +968,14 @@ let isAppendingMessages = false;
 function flattenMessagesForRender(data){
   const flat = [];
 
-  Object.keys(data).forEach(date => {
+  // 一般進入聊天室時，固定依日期由舊到新排列，
+  // 不使用 JSON 檔案合併後的物件插入順序。
+  const dates = Object.keys(data).sort((a, b) => {
+    const diff = dateSortValue(a) - dateSortValue(b);
+    return diff || String(a).localeCompare(String(b));
+  });
+
+  dates.forEach(date => {
     flat.push({ type:"date", date });
 
     (data[date] || []).forEach(item => {
@@ -3166,9 +3163,7 @@ document.addEventListener("keydown", e => {
 });
 
 const MESSAGE_FILES = [
-  "./messages/sunwoo_2021-08-27_to_2021-09-24_compact_format.json",
-  "./messages/messages.json",
-  "./messages/fromm_messages.json",
+
 ];
 
 async function loadAllMessageFiles(files = MESSAGE_FILES){
