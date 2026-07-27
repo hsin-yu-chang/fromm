@@ -474,7 +474,7 @@ const FROMM_FRIENDS = [
     avatar:"./icons/profile.jfif",
     subtitle:"😚",
     likes:"+412",
-    messages:["./messages/sw_universe.json"]
+    messages:["./messages/text.json"]
   },
   {
     id:"younghoon",
