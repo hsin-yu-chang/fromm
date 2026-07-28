@@ -12,7 +12,7 @@ function renderBaseLayout(){
 
       <div class="main-profile" role="button" tabindex="0" onclick="selectFriend('sunwoo')">
         <div class="main-profile-avatar" style="background-image:url('./icons/profile.jpg')"></div>
-        <div class="main-profile-name">ᖰ•౪•ᖳ</div>
+        <div class="main-profile-name">더비</div>
       </div>
 
       <div class="main-section-title">Best fromm Friend <span id="mainFriendCount">0</span></div>
@@ -25,7 +25,6 @@ function renderBaseLayout(){
       <div class="main-bottom-nav">
         <button class="main-bottom-item active" type="button">☆</button>
         <button class="main-bottom-item" type="button">💬</button>
-        <button class="main-bottom-item" type="button">▭</button>
         <button class="main-bottom-item" type="button">▣</button>
         <button class="main-bottom-item" type="button">•••</button>
       </div>
@@ -474,40 +473,9 @@ const FROMM_FRIENDS = [
     avatar:"./icons/profile.jfif",
     subtitle:"😚",
     likes:"+412",
-    messages:["./messages/text.json"]
+    messages:["./messages/text.json","./messages/sw_universe.json"]
   },
-  {
-    id:"younghoon",
-    name:"영훈이",
-    avatar:"./icons/profile.jpg",
-    subtitle:"더...",
-    likes:"+88",
-    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
-  },
-  {
-    id:"youngjae",
-    name:"영재💛",
-    avatar:"./icons/profile.jpg",
-    subtitle:"I love THE B 💗",
-    likes:"+1222",
-    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
-  },
-  {
-    id:"junyoung",
-    name:"준영이",
-    avatar:"./icons/profile.jpg",
-    subtitle:"💞",
-    likes:"+530",
-    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
-  },
-  {
-    id:"hyunjae",
-    name:"꼬질이",
-    avatar:"./icons/profile.jpg",
-    subtitle:"",
-    likes:"+913",
-    messages:["./messages/sw_bubble.json", "./messages/sw_fromm.json", "./messages/sw_universe.json"]
-  }
+
 ];
 
 let currentFriendId = localStorage.getItem("frommCurrentFriendId") || "sunwoo";
