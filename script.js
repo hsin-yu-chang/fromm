@@ -15,7 +15,7 @@ function renderBaseLayout(){
         <div class="main-profile-name">더비</div>
       </div>
 
-      <div class="main-section-title">Best fromm Friend <span id="mainFriendCount">0</span></div>
+      <div class="main-section-title">時期 <span id="mainFriendCount">0</span></div>
       <div class="main-friend-list" id="mainFriendList"></div>
 
       <div class="main-section-divider"></div>
@@ -468,14 +468,22 @@ let mediaViewerAnimating = false;
 
 const FROMM_FRIENDS = [
   {
-    id:"sunwoo",
+    id:"sunwoo_universe",
     name:"선우",
     avatar:"./icons/profile.jfif",
     subtitle:"😚",
     likes:"+412",
     messages:["./messages/text.json","./messages/sw_universe.json"]
-  },
 
+  },
+  {
+    id:"sunwoo_bubble",
+    name:"선우",
+    avatar:"./icons/profile.jpg",
+    subtitle:"😚",
+    likes:"+412",
+    messages:["./messages/sw_bubble.json"]
+  },
 ];
 
 let currentFriendId = localStorage.getItem("frommCurrentFriendId") || "sunwoo";
