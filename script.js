@@ -666,7 +666,7 @@ function formatDateLabel(date){
   const m = match[2].padStart(2, "0");
   const d = match[3].padStart(2, "0");
 
-  return `${y}年${m}月${d}日`;
+  return `${y}.${m}.${d}`;
 }
 
 function addDateDivider(date){
