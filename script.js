@@ -468,6 +468,15 @@ let mediaViewerAnimating = false;
 
 const FROMM_FRIENDS = [
   {
+    id:"sunwoo_test",
+    name:"선우",
+    avatar:"./icons/profile.jfif",
+    subtitle:"😚",
+    likes:"+412",
+    messages:["./messages/text.json"]
+
+  },
+  {
     id:"sunwoo_universe",
     name:"선우",
     avatar:"./icons/profile.jfif",
