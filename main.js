@@ -31,17 +31,22 @@ const PROFILE_IMAGES = {
   sunwoo_universe: [
     {
       start:"2021-01-31",
-      end:"2021-02-04",
+      end:"2021-02-02",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1785313349/210331-3_ny06nv.jpg"
     },
     {
-      start:"2021-02-05",
+      start:"2021-02-03",
+      end:"2021-02-05",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1786599423/EtMhhb8VcAAXcfP_ytqin2.jpg"
+    },
+    {
+      start:"2021-02-06",
       end:"2021-08-04",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1785313349/210331-3_ny06nv.jpg"
     },
     {
       start:"2021-08-05",
-      end:"2021-08-04",
+      end:"2021-12-31",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1786346137/profile_dtf4gw.jpg"
     },
   ],
