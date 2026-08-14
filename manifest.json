@@ -1,6 +1,6 @@
 {
-  "name": "Fromm Chat",
-  "short_name": "Fromm",
+  "name": "sw message",
+  "short_name": "sw message",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -1,18 +1,16 @@
-const CACHE_NAME = "fromm-chat-v1";
+const CACHE_NAME = "chat-v1";
 
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
   "./style.css",
-  "./script.js",
+  "./main.js",
+  "./chat.js",
   "./fake-scrollbar.js",
-  "./messages.json",
+  "./messages/sw_universe.json",
   "./manifest.json",
-
-  "./font/Gaegu-Regular.ttf",
-  "./font/girl.ttf",
-
-  "./icons/icon-192.png",
+  "./font/Shaonv.woff2",
+  "./icons/icon-512-modified.png",
 
 ];
 
