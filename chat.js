@@ -26,6 +26,15 @@ function renderChatLayout(){
           <button class="nav-btn search-btn" type="button" aria-label="搜尋" onclick="openSearch()">
             <span class="icon-search" aria-hidden="true"></span>
           </button>
+          <button
+            id="translationToggleBtn"
+            class="nav-btn translation-btn"
+            type="button"
+            aria-label="切換翻譯"
+            aria-pressed="false"
+            onclick="toggleTranslation()"
+            style="font-weight:700; opacity:.45;"
+          >文</button>
           <button class="nav-btn menu-btn" type="button" onclick="showSettings()" aria-label="聊天室設定">☰</button>
         </div>
       </div>
@@ -82,6 +91,10 @@ const DEFAULT_ARTIST_NAME = "선우";
 const DEFAULT_NICKNAME = "더비";
 let artistName = localStorage.getItem("frommChatName") || DEFAULT_ARTIST_NAME;
 let NICKNAME = localStorage.getItem("frommNickname") || DEFAULT_NICKNAME;
+
+// 第一次使用時翻譯預設關閉；之後記住上次開關狀態。
+let SHOW_TRANSLATION = localStorage.getItem("frommShowTranslation") === "true";
+
 const DEFAULT_THEME_COLOR = "#111216";
 const DEFAULT_THEME_MODE = "preset";
 const DEFAULT_THEME_PRESET = "black";
@@ -259,6 +272,7 @@ async function selectFriend(friendId){
     allMessages = await loadAllMessageFiles(friend.messages);
     applyThemeColor();
     updateSettingsLabels();
+    updateTranslationToggleButton();
     renderMessages(allMessages);
     setPage("chat");
   }catch(err){
@@ -555,6 +569,65 @@ function resetAudioButton(audio){
   resetAudioBubbleProgress(audio);
 }
 
+function updateTranslationToggleButton(){
+  const btn = document.getElementById("translationToggleBtn");
+  if(!btn) return;
+
+  btn.classList.toggle("active", SHOW_TRANSLATION);
+  btn.setAttribute("aria-pressed", SHOW_TRANSLATION ? "true" : "false");
+  btn.style.opacity = SHOW_TRANSLATION ? "1" : ".45";
+}
+
+function rerenderMessagesKeepPosition(){
+  const chatRect = chat.getBoundingClientRect();
+  const children = Array.from(chat.children);
+
+  // 記住目前畫面最上方看得到的訊息／日期，以及它相對聊天室頂端的位置。
+  let anchorIndex = -1;
+  let anchorOffset = 0;
+
+  for(let i = 0; i < children.length; i++){
+    const rect = children[i].getBoundingClientRect();
+
+    if(rect.bottom > chatRect.top){
+      anchorIndex = i;
+      anchorOffset = rect.top - chatRect.top;
+      break;
+    }
+  }
+
+  // 記住目前已經渲染到哪裡，避免切翻譯後只剩前 150 筆而跳回前面。
+  const oldRenderedCount = renderedItemCount;
+
+  renderMessages(allMessages);
+
+  // 補回切換前已載入的訊息數量。
+  while(renderedItemCount < oldRenderedCount && renderedItemCount < flatRenderItems.length){
+    appendNextMessageBatch();
+  }
+
+  // 讓原本畫面最上方那一則訊息維持在相同位置。
+  if(anchorIndex >= 0){
+    requestAnimationFrame(() => {
+      const newAnchor = chat.children[anchorIndex];
+      if(!newAnchor) return;
+
+      const newChatRect = chat.getBoundingClientRect();
+      const newAnchorRect = newAnchor.getBoundingClientRect();
+      const delta = (newAnchorRect.top - newChatRect.top) - anchorOffset;
+
+      chat.scrollTop += delta;
+    });
+  }
+}
+
+function toggleTranslation(){
+  SHOW_TRANSLATION = !SHOW_TRANSLATION;
+  localStorage.setItem("frommShowTranslation", SHOW_TRANSLATION ? "true" : "false");
+  updateTranslationToggleButton();
+  rerenderMessagesKeepPosition();
+}
+
 function addArtistMessage(item, date = ""){
   const text = displayText(typeof item === "string" ? item : item.text);
   const trans = displayText(typeof item === "string" ? "" : item.trans);
@@ -570,7 +643,7 @@ function addArtistMessage(item, date = ""){
         <div class="reply-line"></div>
         <div class="quote-box">
           <div>${escapeHtml(quote)}</div>
-          ${quoteTrans ? `
+          ${SHOW_TRANSLATION && quoteTrans ? `
             <div class="bubble-divider"></div>
             <div>${escapeHtml(quoteTrans)}</div>
           ` : ""}
@@ -580,7 +653,7 @@ function addArtistMessage(item, date = ""){
     : "";
 
   const showText = text && !(mediaHtml && /^\([^)]*\)$/.test(text));
-  const transHtml = trans && !mediaOnly
+  const transHtml = SHOW_TRANSLATION && trans && !mediaOnly
       ? `
         <div class="bubble-divider"></div>
         <div class="msg-text trans-text">${formatMessageText(typeof item === "string" ? "" : item.trans)}</div>
@@ -2914,6 +2987,7 @@ loadAllMessageFiles(getCurrentFriend().messages)
 
     applyThemeColor();
     updateSettingsLabels();
+    updateTranslationToggleButton();
     renderMessages(allMessages);
 
     const initialPage = normalizePage(location.hash.replace("#", "") || "main");

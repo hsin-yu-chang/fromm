@@ -579,8 +579,8 @@ button.nav-btn.menu-btn{
 .chat-media,
 .chat-video{
   display:block;
-  width:min(280px, 70vw);
-  max-height:380px;
+  width:min(220px, 65vw);
+  max-height:auto;
   border-radius:0 18px 18px 18px;
   background:transparent;
 }
