@@ -1,6 +1,6 @@
 {
-  "name": "sw message",
-  "short_name": "sw message",
+  "name": "tbz msg",
+  "short_name": "tbz msg",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
