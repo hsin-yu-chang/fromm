@@ -17,7 +17,7 @@ function renderChatLayout(){
   app.innerHTML = `
     <div class="header chat-header">
       <div class="header-bar" id="headerNormal">
-        <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="showMain()">
+        <button class="nav-btn back-btn" type="button" aria-label="返回" onclick="goBackFromPage()">
           <span class="back-icon">‹</span>
         </button>
         <div class="name" id="artistName">&nbsp;선우</div>
@@ -68,7 +68,7 @@ function renderChatLayout(){
   settingsPage.innerHTML = `
     <div class="header settings-header">
       <div class="header-bar">
-        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="showChat()">
+        <button class="nav-btn back-btn" type="button" aria-label="返回聊天室" onclick="goBackFromPage()">
           <span class="back-icon">‹</span>
         </button>
         <div class="name">聊天室設定</div>
@@ -1412,74 +1412,54 @@ function initHistoryPage(page){
   const initialPage = normalizePage(page);
   currentPage = initialPage;
 
-  // 手機返回鍵如果剛好在第一筆歷史紀錄，瀏覽器會直接離開 PWA / 網頁，
-  // 所以啟動時先補一筆同頁面的保護紀錄，讓第一次返回一定會被 popstate 接住。
+  // 只建立目前頁面的歷史紀錄，不另外塞「保護頁」。
+  // 因此手機返回鍵與左上角返回鍵都會真正離開目前頁面。
   writeHistoryPage(initialPage, true, { init: true });
-  writeHistoryPage(initialPage, false, { guard: true });
 }
 
 function keepInsideCurrentPage(){
-  const page = getCurrentPage();
-  writeHistoryPage(page, false, { guard: true });
+  // 保留函式名稱避免舊程式呼叫出錯，但不再額外塞 history。
 }
 
 function setPage(page, options = {}){
   const nextPage = normalizePage(page);
+  const replace = options.replace === true;
+
+  // 已經在同一頁時只重畫，不再塞一筆重複歷史。
+  if(nextPage === currentPage && !replace){
+    showPage(nextPage);
+    return;
+  }
+
   currentPage = nextPage;
 
-  // APP 內部換頁一律用 replace，不再 push 新歷史紀錄。
-  // 這樣左上角返回後，手機返回鍵不會把剛剛經過的頁面又倒放一次。
-  writeHistoryPage(nextPage, true, { appPage: true });
+  // 一般進入新頁面使用 pushState：
+  // 主頁 → 聊天室 → 設定 → 媒體頁
+  // 每一層都會保留，因此返回就是直接移除目前這一層。
+  writeHistoryPage(nextPage, replace, { appPage: true });
   showPage(nextPage);
 }
 
-function goBackFromPage(page = getCurrentPage()){
-  if(isMediaViewerOpen()){
-    closeMediaViewer();
-    keepInsideCurrentPage();
-    return;
-  }
-
-  const fromPage = normalizePage(page);
-  const targetPage = BACK_TARGETS[fromPage] || "chat";
-
-  // 返回是「回到指定頁」，不要再新增一堆瀏覽器歷史，避免手機返回鍵亂跳。
-  setPage(targetPage, { replace: true });
+function goBackFromPage(){
+  // 左上角返回完全等同手機 / 瀏覽器返回。
+  history.back();
 }
 
-window.addEventListener("popstate", () => {
-  const fromPage = getCurrentPage();
-
-  // 先處理圖片 / 影片 / 語音預覽
-  // 不要一進來就 keepInsideCurrentPage，不然手機返回歷史會亂掉
+window.addEventListener("popstate", event => {
+  // 如果目前開著照片 / 影片 / 語音預覽，
+  // 返回時先把這個浮層真正關掉。
   if(isMediaViewerOpen()){
     closeMediaViewer(true);
-    showPage(fromPage);
-
-    // 關掉預覽後，再補一筆保護紀錄
-    setTimeout(() => {
-      keepInsideCurrentPage();
-    }, 0);
-
-    return;
   }
 
-  if(fromPage === "chat"){
-    showPage("chat");
+  const nextPage = normalizePage(
+    event.state?.page ||
+    location.hash.replace("#", "") ||
+    "main"
+  );
 
-    // 在聊天室按手機返回，不讓它直接退出 PWA
-    setTimeout(() => {
-      keepInsideCurrentPage();
-    }, 0);
-
-    return;
-  }
-
-  goBackFromPage(fromPage);
-
-  setTimeout(() => {
-    keepInsideCurrentPage();
-  }, 0);
+  currentPage = nextPage;
+  showPage(nextPage);
 });
 
 function showPage(page){
@@ -2287,6 +2267,13 @@ function downloadMediaFile(url){
     });
 }
 function closeMediaViewer(fromPopstate = false){
+  // 使用者點預覽頁左上角返回時，不自己指定要顯示哪頁，
+  // 直接做和手機返回鍵完全相同的 history.back()。
+  if(!fromPopstate){
+    history.back();
+    return;
+  }
+
   const viewer = document.getElementById("mediaViewer");
   const body = document.getElementById("mediaViewerBody");
 
@@ -2300,14 +2287,6 @@ function closeMediaViewer(fromPopstate = false){
   }
 
   currentMediaViewerIndex = -1;
-
-  // 如果是點左上角返回關閉預覽，不是手機返回鍵，
-  // 就補一筆目前頁面的歷史，避免下一次手機返回直接退出。
-  if(!fromPopstate){
-    setTimeout(() => {
-      keepInsideCurrentPage();
-    }, 0);
-  }
 }
 
 
@@ -2819,11 +2798,9 @@ function saveSettingsEdit(){
   if(saved === false) return;
 
   updateSettingsLabels();
-  if(currentSettingsEditType === "edit-theme-color" || currentSettingsEditType === "edit-theme-image"){
-    setPage("theme-custom");
-    return;
-  }
-  setPage("settings");
+
+  // 儲存後直接關掉目前編輯頁，回到進入它之前的頁面。
+  history.back();
 }
 
 const SETTINGS_ITEMS = [
