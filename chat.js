@@ -439,10 +439,13 @@ function getMediaKind(item){
   return "image";
 }
 
-function getMediaHtml(item){
+function getMediaHtml(item, date = ""){
   if(!item || !item.url) return "";
   const url = escapeAttr(item.url);
   const kind = getMediaKind(item);
+  const rawUrl = escapeAttr(item.url);
+  const rawDate = escapeAttr(date || "");
+  const rawTime = escapeAttr(item.time || "");
 
   if(kind === "audio"){
     return `
@@ -457,11 +460,35 @@ function getMediaHtml(item){
   }
 
   if(kind === "video"){
-    return `<video class="chat-video" controls preload="metadata" src="${url}"></video>`;
+    return `
+      <video
+        class="chat-video chat-media-clickable"
+        controls
+        preload="metadata"
+        src="${url}"
+        data-media-url="${rawUrl}"
+        data-media-kind="video"
+        data-media-date="${rawDate}"
+        data-media-time="${rawTime}"
+      ></video>
+    `;
   }
 
-  const cls = kind === "emoticon" ? "emoticon-media" : "chat-media";
-  return `<img class="${cls}" src="${url}" loading="lazy">`;
+  const cls = kind === "emoticon"
+    ? "emoticon-media"
+    : "chat-media chat-media-clickable";
+
+  return `
+    <img
+      class="${cls}"
+      src="${url}"
+      loading="lazy"
+      data-media-url="${rawUrl}"
+      data-media-kind="${escapeAttr(kind)}"
+      data-media-date="${rawDate}"
+      data-media-time="${rawTime}"
+    >
+  `;
 }
 
 function secToTime(sec){
@@ -637,7 +664,7 @@ function addArtistMessage(item, date = ""){
   const trans = displayText(typeof item === "string" ? "" : item.trans);
   const quote = displayText(typeof item === "string" ? "" : item.quote);
   const quoteTrans = displayText(typeof item === "string" ? "" : item.quoteTrans);
-  const mediaHtml = typeof item === "string" ? "" : getMediaHtml(item);
+  const mediaHtml = typeof item === "string" ? "" : getMediaHtml(item, date);
   const mediaKind = typeof item === "string" ? "" : getMediaKind(item);
   const mediaOnly = mediaHtml && ["image", "video", "emoticon", "audio"].includes(mediaKind);
 
@@ -1254,6 +1281,91 @@ function getMediaPageItemHtml(item, viewerIndex = -1, date = ""){
   `;
 }
 
+
+function buildChatMediaViewerItems(){
+  const items = [];
+
+  const dates = Object.keys(allMessages || {}).sort((a, b) => {
+    const diff = dateSortValue(a) - dateSortValue(b);
+    return diff || String(a).localeCompare(String(b));
+  });
+
+  dates.forEach(date => {
+    (allMessages[date] || []).forEach(item => {
+      if(typeof item === "string" || !item?.url) return;
+
+      const kind = getMediaKind(item);
+
+      // 聊天室直接點開只收照片 / 影片。
+      if(kind !== "image" && kind !== "video") return;
+
+      items.push({
+        item,
+        kind,
+        date,
+        time: formatTime(item.time)
+      });
+    });
+  });
+
+  return items;
+}
+
+function openChatMediaViewer(url, kind, date = "", time = ""){
+  currentMediaViewerItems = buildChatMediaViewerItems();
+
+  const index = currentMediaViewerItems.findIndex(entry => {
+    return entry?.item?.url === url;
+  });
+
+  if(index >= 0){
+    currentMediaViewerIndex = index;
+  }else{
+    // 保底：即使這筆不在 allMessages 清單，也能正常打開。
+    currentMediaViewerItems = [{
+      item: { url, time },
+      kind,
+      date,
+      time: formatTime(time)
+    }];
+    currentMediaViewerIndex = 0;
+  }
+
+  openMediaViewer(
+    url,
+    kind,
+    formatTime(time)
+  );
+}
+
+// 聊天室內的圖片 / 影片：單擊直接打開媒體預覽。
+// 使用事件委派，分批渲染後新增的訊息也自動有效。
+chat.addEventListener("click", e => {
+  const media = e.target.closest?.(".chat-media-clickable");
+  if(!media) return;
+
+  // 影片控制列被操作時不要攔截，讓播放/音量/全螢幕仍能正常使用。
+  if(media.tagName === "VIDEO"){
+    const rect = media.getBoundingClientRect();
+    const yFromBottom = rect.bottom - e.clientY;
+
+    // 瀏覽器原生控制列大約位於底部 45px。
+    if(yFromBottom >= 0 && yFromBottom <= 48){
+      return;
+    }
+
+    media.pause();
+  }
+
+  e.preventDefault();
+
+  openChatMediaViewer(
+    media.dataset.mediaUrl || media.currentSrc || media.src,
+    media.dataset.mediaKind || (media.tagName === "VIDEO" ? "video" : "image"),
+    media.dataset.mediaDate || "",
+    media.dataset.mediaTime || ""
+  );
+});
 
 function normalizeMediaTab(tab){
   return tab === "audio" ? "audio" : "media";
