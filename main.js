@@ -53,9 +53,34 @@ const PROFILE_IMAGES = {
 
   sunwoo_bubble: [
     {
-      start:"0000-01-01",
-      end:"9999-12-31",
-      url:""
+      start:"2023-02-17",
+      end:"2023-05-06",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/230217_xursxc.jpg"
+    },
+    {
+      start:"2023-05-07",
+      end:"2023-08-24",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/230507_thntdc.webp"
+    },
+    {
+      start:"2023-08-25",
+      end:"2023-09-03",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103229/230825_romcsa.png"
+    },
+    {
+      start:"2023-09-04",
+      end:"2023--",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/230904_oiaab4.jpg"
+    },
+    {
+      start:"2024-02-05",
+      end:"2024-07-14",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/240205_otihpu.jpg"
+    },
+    {
+      start:"2024-07-15",
+      end:"2024-12-20",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103226/240715_lq5hnc.jpg"
     }
   ]
 };
