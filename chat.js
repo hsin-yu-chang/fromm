@@ -89,8 +89,8 @@ renderChatLayout();
 const chat = document.getElementById("chat");
 const DEFAULT_ARTIST_NAME = "선우";
 const DEFAULT_NICKNAME = "더비";
-let artistName = localStorage.getItem("frommChatName") || DEFAULT_ARTIST_NAME;
-let NICKNAME = localStorage.getItem("frommNickname") || DEFAULT_NICKNAME;
+let artistName = getSavedChatName(getCurrentFriend().id, getCurrentFriend().name || DEFAULT_ARTIST_NAME);
+let NICKNAME = getSavedNickname(getCurrentFriend().id, DEFAULT_NICKNAME);
 
 // 第一次使用時翻譯預設關閉；之後記住上次開關狀態。
 let SHOW_TRANSLATION = localStorage.getItem("frommShowTranslation") === "true";
@@ -254,11 +254,15 @@ let mediaViewerAnimating = false;
 
 function applyCurrentFriendMeta(){
   const friend = getCurrentFriend();
-  artistName = friend.name || DEFAULT_ARTIST_NAME;
-  localStorage.setItem("frommChatName", artistName);
+
+  // 優先讀取這個聊天室自己保存的名稱；沒有才使用 main.js 裡的預設名稱。
+  artistName = getSavedChatName(friend.id, friend.name || DEFAULT_ARTIST_NAME);
+
+  // 每個聊天室都有自己的「我的暱稱」。
+  NICKNAME = getSavedNickname(friend.id, DEFAULT_NICKNAME);
 
   // 這個 CSS 變數會同步控制：聊天室頭貼、語音縮圖、語音播放頁頭貼。
-  document.documentElement.style.setProperty("--avatar-image", `url("${getProfileImage(friend.id, "", "./icons/profile.jpg")}")`);
+  document.documentElement.style.setProperty("--avatar-image", `url("${getProfileImage(friend.id, "", "", "./icons/profile.jpg")}")`);
 
   const artistEl = document.getElementById("artistName");
   if(artistEl) artistEl.textContent = artistName;
@@ -669,7 +673,7 @@ function addArtistMessage(item, date = ""){
             ${transHtml}
          </div>`;
 
-  const avatarUrl = getProfileImage(getCurrentFriend().id, date, "./icons/profile.jpg");
+  const avatarUrl = getProfileImage(getCurrentFriend().id, date, typeof item === "string" ? "" : item.time, "./icons/profile.jpg");
 
   const row = document.createElement("div");
   row.className = "msg-row";
@@ -1206,7 +1210,7 @@ function getMediaPageItemHtml(item, viewerIndex = -1, date = ""){
   const rawUrl = escapeAttr(item.url);
   const thumbUrl = escapeAttr(getThumbUrl(item.url));
   const time = formatTime(item.time);
-  const avatarUrl = getProfileImage(getCurrentFriend().id, date, "./icons/profile.jpg");
+  const avatarUrl = getProfileImage(getCurrentFriend().id, date, item?.time || "", "./icons/profile.jpg");
   const openAction = viewerIndex >= 0
     ? `openMediaViewerByIndex(${viewerIndex})`
     : `openMediaViewer('${rawUrl}', '${escapeAttr(kind)}', '${escapeAttr(time || "")}')`;
@@ -1895,7 +1899,7 @@ function showNextMediaViewerItem(){
 }
 
 function getMediaViewerContentHtml(url, type, date = ""){
-  const avatarUrl = getProfileImage(getCurrentFriend().id, date, "./icons/profile.jpg");
+  const avatarUrl = getProfileImage(getCurrentFriend().id, date, "", "./icons/profile.jpg");
 
   if(type === "audio"){
     return `
@@ -1996,7 +2000,7 @@ function getMediaViewerContentHtmlByEntry(entry, active = false){
   const url = entry.item.url;
   const type = entry.kind;
   const autoplay = active ? "autoplay" : "";
-  const avatarUrl = getProfileImage(getCurrentFriend().id, entry.date || "", "./icons/profile.jpg");
+  const avatarUrl = getProfileImage(getCurrentFriend().id, entry.date || "", entry.item?.time || "", "./icons/profile.jpg");
 
   if(type === "audio"){
     return `
@@ -2650,7 +2654,7 @@ const SETTINGS_EDIT_CONFIG = {
     get:() => NICKNAME,
     set:value => {
       NICKNAME = value;
-      localStorage.setItem("frommNickname", NICKNAME);
+      saveNickname(getCurrentFriend().id, NICKNAME);
       renderMessages(allMessages);
     }
   },
@@ -2661,7 +2665,10 @@ const SETTINGS_EDIT_CONFIG = {
     get:() => artistName,
     set:value => {
       artistName = value;
-      localStorage.setItem("frommChatName", artistName);
+      saveChatName(getCurrentFriend().id, artistName);
+
+      // 同步更新主頁好友名稱，返回主頁時立刻看到新名稱。
+      renderMainFriendList();
     }
   },
   "edit-theme-color": {

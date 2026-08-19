@@ -6,13 +6,7 @@
 // 新增頭貼時，只要再加一筆 { start, end, url }。
 // 聊天訊息會依 JSON 的日期自動選對應頭貼；主頁好友清單則顯示最新一筆頭貼。
 const PROFILE_IMAGES = {
-  me: [
-    {
-      start:"0000-01-01",
-      end:"9999-12-31",
-      url:""
-    }
-  ],
+
 
   sunwoo_test: [
     {
@@ -82,23 +76,105 @@ const PROFILE_IMAGES = {
       end:"2024-12-20",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103226/240715_lq5hnc.jpg"
     }
+  ],
+  hyunjae_universe:[
+    {
+      start:"2021-01-29",
+      end:"2023-02-15",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787116387/230217_eid4wf.jpg"
+    }
+  ],
+  hyunjae_bubble:[
+    {
+      start:"2023-02-17 16:47",
+      end:"2023-08-13 21:20:00",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787116387/230217_eid4wf.jpg"
+    },
+    {
+      start:"2023-08-13 21:20:20",
+      end:"2023-09-24 05:53",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787116387/230813_d716o6.jpg"
+    },
+    {
+      start:"2023-09-24 05:54",
+      end:"2024-01-04",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787116386/230924_nieht6.jpg"
+    },
+    {
+      start:"2024-01-04",
+      end:"2024-07-07 21:51",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787114277/240104_wkrxox.jpg"
+    },
+    {
+      start:"2024-07-07 21:53",
+      end:"2024-12-05",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787114277/240707_teuh3w.jpg"
+    },
   ]
 };
 
-function normalizeProfileDate(value){
+function normalizeProfileDateTime(value, defaultTime = "00:00:00"){
   const raw = String(value || "").trim();
-  const match = raw.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);
+
+  const match = raw.match(
+    /^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/
+  );
+
   if(!match) return "";
 
-  return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+  const y = match[1];
+  const m = match[2].padStart(2, "0");
+  const d = match[3].padStart(2, "0");
+
+  let hh = match[4];
+  let mm = match[5];
+  let ss = match[6];
+
+  if(hh == null || mm == null){
+    const t = String(defaultTime || "00:00:00").split(":");
+    hh = t[0] || "00";
+    mm = t[1] || "00";
+    ss = t[2] || "00";
+  }
+
+  return `${y}-${m}-${d} ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss || "00").padStart(2, "0")}`;
 }
 
-function getProfileImage(key, date = "", fallback = "./icons/profile.jpg"){
+function normalizeProfileMessageTime(value){
+  const raw = String(value || "").trim();
+  if(!raw) return "00:00:00";
+
+  // 24 小時制：21:53 / 21:53:30
+  let m = raw.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if(m){
+    return `${m[1].padStart(2,"0")}:${m[2]}:${(m[3] || "00").padStart(2,"0")}`;
+  }
+
+  // 韓文時間：오전 12:43 / 오후 09:53
+  m = raw.match(/^(오전|오후)\s*(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if(m){
+    let h = Number(m[2]);
+
+    if(m[1] === "오전"){
+      if(h === 12) h = 0;
+    }else{
+      if(h !== 12) h += 12;
+    }
+
+    return `${String(h).padStart(2,"0")}:${m[3]}:${(m[4] || "00").padStart(2,"0")}`;
+  }
+
+  return "00:00:00";
+}
+
+function getProfileImage(key, date = "", time = "", fallback = "./icons/profile.jpg"){
   const entries = Array.isArray(PROFILE_IMAGES[key]) ? PROFILE_IMAGES[key] : [];
+
   const validEntries = entries
     .map(item => ({
-      start: normalizeProfileDate(item?.start) || "0000-01-01",
-      end: normalizeProfileDate(item?.end) || "9999-12-31",
+      // 只有日期時：start 視為當天 00:00:00；end 視為當天 23:59:59
+      start: normalizeProfileDateTime(item?.start, "00:00:00") || "0000-01-01 00:00:00",
+      end: normalizeProfileDateTime(item?.end, "23:59:59") || "9999-12-31 23:59:59",
       url: String(item?.url || "").trim()
     }))
     .filter(item => item.url)
@@ -106,25 +182,32 @@ function getProfileImage(key, date = "", fallback = "./icons/profile.jpg"){
 
   if(!validEntries.length) return fallback;
 
-  const normalizedDate = normalizeProfileDate(date);
+  const normalizedDate = String(date || "").trim();
+  const normalizedTime = normalizeProfileMessageTime(time);
 
+  let normalizedDateTime = "";
   if(normalizedDate){
+    normalizedDateTime = normalizeProfileDateTime(
+      `${normalizedDate} ${normalizedTime}`,
+      "00:00:00"
+    );
+  }
+
+  if(normalizedDateTime){
     const matched = validEntries
-      .filter(item => normalizedDate >= item.start && normalizedDate <= item.end)
+      .filter(item => normalizedDateTime >= item.start && normalizedDateTime <= item.end)
       .at(-1);
 
-    // 如果有「預設全期間」和較新的特定日期區間重疊，會優先使用開始日期較新的那張。
     if(matched) return matched.url;
 
-    // 日期沒有剛好落在設定區間時，優先沿用該日期之前最近的一張頭貼。
     const previous = [...validEntries]
       .reverse()
-      .find(item => item.start <= normalizedDate);
+      .find(item => item.start <= normalizedDateTime);
 
     if(previous) return previous.url;
   }
 
-  // 主頁沒有指定日期時顯示最新一筆頭貼。
+  // 主頁沒有日期 / 時間時，顯示最新一筆頭貼。
   return validEntries[validEntries.length - 1].url || fallback;
 }
 
@@ -149,6 +232,20 @@ const FROMM_FRIENDS = [
     subtitle:"😚",
     likes:"+412",
     messages:["./messages/sw_bubble.json"]
+  },
+  {
+    id:"hyunjae_universe",
+    name:"현재",
+    subtitle:"",
+    likes:"+913",
+    messages:["./messages/hj_universe.json"]
+  },
+  {
+    id:"hyunjae_bubble",
+    name:"현재",
+    subtitle:"",
+    likes:"+913",
+    messages:["./messages/hj_bubble.json"]
   }
 ];
 
@@ -161,6 +258,28 @@ function setCurrentFriendId(friendId){
   const friend = FROMM_FRIENDS.find(item => item.id === friendId) || FROMM_FRIENDS[0];
   localStorage.setItem("frommCurrentFriendId", friend.id);
   return friend;
+}
+
+// 每個聊天室名稱分開保存，避免切換好友或重新整理後又被預設名稱覆蓋。
+function getSavedChatName(friendId, fallback = ""){
+  const key = `frommChatName_${friendId}`;
+  return localStorage.getItem(key) || fallback;
+}
+
+function saveChatName(friendId, name){
+  const key = `frommChatName_${friendId}`;
+  localStorage.setItem(key, name);
+}
+
+// 每個聊天室的「我的暱稱」也分開保存。
+function getSavedNickname(friendId, fallback = ""){
+  const key = `frommNickname_${friendId}`;
+  return localStorage.getItem(key) || fallback;
+}
+
+function saveNickname(friendId, nickname){
+  const key = `frommNickname_${friendId}`;
+  localStorage.setItem(key, nickname);
 }
 
 function mainEscapeHtml(str){
@@ -193,11 +312,11 @@ function renderMainLayout(){
     </div>
 
     <div class="main-profile" role="button" tabindex="0" onclick="selectFriend(getCurrentFriend().id)">
-      <div class="main-profile-avatar" style="background-image:url('${mainEscapeAttr(getProfileImage("me", "", "./icons/profile.jpg"))}')"></div>
+      <div class="main-profile-avatar" style="background-image:url('${mainEscapeAttr(getProfileImage("me", "", "", "./icons/profile.jpg"))}')"></div>
       <div class="main-profile-name">더비</div>
     </div>
 
-    <div class="main-section-title">時期 <span id="mainFriendCount">0</span></div>
+    <div class="main-section-title">FRIENDS <span id="mainFriendCount">0</span></div>
     <div class="main-friend-list" id="mainFriendList"></div>
 
     <div class="main-section-divider"></div>
@@ -226,9 +345,9 @@ function renderMainFriendList(){
 
   list.innerHTML = FROMM_FRIENDS.map(friend => `
     <div class="main-friend-item" role="button" tabindex="0" onclick="selectFriend('${mainEscapeAttr(friend.id)}')">
-      <div class="main-friend-avatar" style="background-image:url('${mainEscapeAttr(getProfileImage(friend.id, '', './icons/profile.jpg'))}')"></div>
+      <div class="main-friend-avatar" style="background-image:url('${mainEscapeAttr(getProfileImage(friend.id, '', '', './icons/profile.jpg'))}')"></div>
       <div class="main-friend-main">
-        <div class="main-friend-name">${mainEscapeHtml(friend.name)}</div>
+        <div class="main-friend-name">${mainEscapeHtml(getSavedChatName(friend.id, friend.name))}</div>
         <div class="main-friend-sub">${mainEscapeHtml(friend.subtitle || "")}</div>
       </div>
       <div class="main-heart">❤ ${mainEscapeHtml(friend.likes || "")}</div>
