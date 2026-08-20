@@ -8,18 +8,57 @@
 const PROFILE_IMAGES = {
 
 
-  sunwoo_test: [
+  sunwoo: [
     {
-      start:"0000-01-01",
-      end:"9999-12-31",
+      start:"2021-01-31",
+      end:"2021-02-02",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1786684691/1a0827fd2f376f2dc82e1c1388e7a-01_lx6gka.jpg"
+    },
+    {
+      start:"2021-02-03",
+      end:"2021-02-05",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1786599423/EtMhhb8VcAAXcfP_ytqin2.jpg"
+    },
+    {
+      start:"2021-02-06",
+      end:"2021-08-04",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1785313349/210331-3_ny06nv.jpg"
+    },
+    {
+      start:"2021-08-05",
+      end:"2021-12-31",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1786346137/profile_dtf4gw.jpg"
+    },
+    {
+      start:"2023-02-17",
+      end:"2023-05-06",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/230217_xursxc.jpg"
+    },
+    {
+      start:"2023-05-07",
+      end:"2023-08-24",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/230507_thntdc.webp"
+    },
+    {
+      start:"2023-08-25",
+      end:"2023-09-03",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103229/230825_romcsa.png"
+    },
+    {
+      start:"2023-09-04",
+      end:"2023--",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/230904_oiaab4.jpg"
+    },
+    {
+      start:"2024-02-05",
+      end:"2024-07-14",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103227/240205_otihpu.jpg"
+    },
+    {
+      start:"2024-07-15",
+      end:"2024-12-20",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787103226/240715_lq5hnc.jpg"
     }
-    // 範例：
-    // ,{
-    //   start:"2022-01-01",
-    //   end:"2022-12-31",
-    //   url:"https://res.cloudinary.com/.../新的頭貼.jpg"
-    // }
   ],
 
   sunwoo_universe: [
@@ -43,6 +82,7 @@ const PROFILE_IMAGES = {
       end:"2021-12-31",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1786346137/profile_dtf4gw.jpg"
     },
+
   ],
 
   sunwoo_bubble: [
@@ -84,7 +124,7 @@ const PROFILE_IMAGES = {
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787116387/230217_eid4wf.jpg"
     }
   ],
-  hyunjae_bubble:[
+  hyunjae:[
     {
       start:"2023-02-17 16:47",
       end:"2023-08-13 21:20:00",
@@ -220,11 +260,35 @@ const FROMM_FRIENDS = [
     messages:["./messages/text.json"]
   },
   {
+    id:"sunwoo",
+    name:"선우",
+    subtitle:"😚",
+    likes:"+412",
+    messages:["./messages/sw_universe.json","./messages/sw_bubble.json"]
+  },
+  {
+    id:"hyunjae",
+    name:"현재",
+    subtitle:"",
+    likes:"+913",
+    messages:["./messages/hj_universe.json","./messages/hj_bubble.json"]
+  },
+];
+
+/*
+  {
+    id:"sunwoo_test",
+    name:"선우",
+    subtitle:"😚",
+    likes:"+412",
+    messages:["./messages/text.json"]
+  },
+  {
     id:"sunwoo_universe",
     name:"선우",
     subtitle:"😚",
     likes:"+412",
-    messages:["./messages/text.json","./messages/sw_universe.json"]
+    messages:["./messages/sw_universe.json"]
   },
   {
     id:"sunwoo_bubble",
@@ -247,7 +311,7 @@ const FROMM_FRIENDS = [
     likes:"+913",
     messages:["./messages/hj_bubble.json"]
   }
-];
+*/
 
 function getCurrentFriend(){
   const savedId = localStorage.getItem("frommCurrentFriendId") || FROMM_FRIENDS[0].id;
