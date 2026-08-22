@@ -67,13 +67,19 @@
     return { rect, scrollRange, thumbHeight, trackRange, thumbTop };
   }
 
-  function updateBar(el){
-    const { bar, thumb } = ensureBar(el);
+function updateBar(el){
+  const { bar, thumb } = ensureBar(el);
 
-    if(!isVisible(el) || el.scrollHeight <= el.clientHeight + 1){
-      bar.style.display = "none";
-      return;
-    }
+  // 手機版不顯示自製滾輪
+  if(window.matchMedia("(max-width: 768px)").matches){
+    bar.style.display = "none";
+    return;
+  }
+
+  if(!isVisible(el) || el.scrollHeight <= el.clientHeight + 1){
+    bar.style.display = "none";
+    return;
+  }
 
     const { rect, thumbHeight, thumbTop } = getMetrics(el);
 
