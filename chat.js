@@ -210,6 +210,56 @@ const THEME_PRESETS = {
       mediaTab:"#6650a8",
       mediaTabInactive:"#8d7cac",
     },
+    purple: {
+      label:"pm紫",
+
+      // 圖片中的主紫色
+      base:"#7048F6",
+
+      // 圖片背景：偏藍的淡薰衣草色
+      chatBg:"#D9DCFD",
+
+      settingsBg:"#D9DCFD",
+      mediaBg:"#D9DCFD",
+
+      // 圖片看起來標題區也是同一個淡紫底
+      header:"#7048F6",
+
+      // 輸入區
+      inputArea:"#7048F6",
+      inputBg:"#F5F6FF",
+
+      // 對方訊息：圖片中的亮紫色
+      artistBubble:"#7048F6",
+
+      // 自己訊息先保留較淺色區分
+      userBubble:"#FFFFFF",
+
+      // 引用區
+      quoteBubble:"#B9A9FA",
+
+      // 語音 / 媒體
+      audioBg:"#8F70F8",
+      mediaCard:"#C7C5F7",
+
+      // 輔助紫
+      accent:"#7048F6",
+
+      // 一般文字
+      textColor:"#111111",
+
+      // 圖片紫色泡泡裡是白字
+      artistText:"#FFFFFF",
+
+      // 自己的白色泡泡用黑字
+      userText:"#111111",
+
+      inputText:"#111111",
+      placeholderText:"#8588A5",
+
+      mediaTab:"#7048F6",
+      mediaTabInactive:"#9699B8",
+},
 
   black: {
     label:"黑",
