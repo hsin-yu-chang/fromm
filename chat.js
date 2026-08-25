@@ -55,11 +55,13 @@ function renderChatLayout(){
 
     <div class="chat" id="chat"></div>
 
-    <div class="input-area">
-      <input id="userInput" placeholder="傳送訊息" onkeydown="if(event.key==='Enter')sendUser()">
-      <button onclick="sendUser()">送出</button>
-    </div>
+
   `;
+
+  //<div class="input-area">
+  //    <input id="userInput" placeholder="傳送訊息" onkeydown="if(event.key==='Enter')sendUser()">
+  //    <button onclick="sendUser()">送出</button>
+  //  </div>
   root.appendChild(app);
 
   const settingsPage = document.createElement("div");

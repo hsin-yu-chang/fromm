@@ -264,7 +264,7 @@ const FROMM_FRIENDS = [
     name:"선우",
     subtitle:"😚",
     likes:"+412",
-    messages:["./messages/sw_universe.json","./messages/sw_bubble.json"]
+    messages:["./messages/sw_universe.json"]
   },
   {
     id:"hyunjae",
