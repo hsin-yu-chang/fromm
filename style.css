@@ -140,7 +140,7 @@ input{
   justify-self:center;
 }
 .chat-header .name{
-  transform:translateY(2px);
+  transform:translateY(1.5px);
 }
 
 .header-actions{
