@@ -33,7 +33,7 @@ function renderChatLayout(){
             aria-label="切換翻譯"
             aria-pressed="false"
             onclick="toggleTranslation()"
-            style="font-weight:700; opacity:.45;"
+            style="font-weight:700; opacity:.45;transform:translateY(1px)"
           >文</button>
           <button class="nav-btn menu-btn" type="button" onclick="showSettings()" aria-label="聊天室設定">☰</button>
         </div>
