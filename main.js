@@ -21,11 +21,16 @@ const PROFILE_IMAGES = {
     },
     {
       start:"2021-02-06",
-      end:"2021-08-04",
+      end:"2021-07-27",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1785313349/210331-3_ny06nv.jpg"
     },
     {
-      start:"2021-08-05",
+      start:"2021-07-27 16:27",
+      end:"2021-07-27 ",
+      url:"https://res.cloudinary.com/dhre1enum/image/upload/v1787723339/210727_vlnwa5.jpg"
+    },
+    {
+      start:"2021-07-27 16:38",
       end:"2021-12-31",
       url:"https://res.cloudinary.com/dhre1enum/image/upload/v1786346137/profile_dtf4gw.jpg"
     },

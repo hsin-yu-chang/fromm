@@ -71,7 +71,7 @@ function updateBar(el){
   const { bar, thumb } = ensureBar(el);
 
   // 手機版不顯示自製滾輪
-  if(window.matchMedia("(max-width: 768px)").matches){
+  if(window.matchMedia("(max-width: 600px)").matches){
     bar.style.display = "none";
     return;
   }
