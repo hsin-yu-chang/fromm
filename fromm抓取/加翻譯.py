@@ -11,8 +11,8 @@ from ntu_easy_llm import ask_chatgpt
 # 設定
 # ============================================================
 
-INPUT_FILE = Path(r"sw_bubble.json")
-OUTPUT_FILE = Path(r"C:\Users\znzn8\Desktop\project\fromm\messages\sw_bubble加翻譯.json")
+INPUT_FILE = Path(r"sw_universe.json")
+OUTPUT_FILE = Path(r"C:\Users\znzn8\Desktop\project\fromm\messages\sw_universe.json")
 #OUTPUT_FILE = Path(r"C:\Users\znzn8\Desktop\project\fromm\messages\hj_universe.json")
 
 MODEL_NAME = "gpt-5.6-luna"
