@@ -3,8 +3,8 @@
 Tistory 聊天訊息抓取器
 ------------------------------------------------------------
 功能：
-1. 從 https://hyunjae-message.tistory.com 的文章列表抓每日文章
-2. 進入每天文章，解析 #raw-data p 中的 JSON
+1. 從 https://sunwooclips2.tistory.com 的文章列表抓每日文章
+2. 進入每天文章，解析 .chat 聊天框（文字、圖片、影片、音訊）
 3. 轉成 Fromm 專案目前使用的 JSON 格式：
 
 4. 圖片 / 影片 / 音訊會額外加入：
@@ -31,7 +31,7 @@ Tistory 聊天訊息抓取器
         python tistory_to_fromm_json.py --start 2021-01-29 --end 2021-12-31
 
     指定輸出：
-        python tistory_to_fromm_json.py --output hyunjae_2021.json
+        python tistory_to_fromm_json.py --output sunwoo_2021.json
 
     強制重抓已有日期：
         python tistory_to_fromm_json.py --force
@@ -60,19 +60,20 @@ from bs4 import BeautifulSoup
 # 可直接修改的設定
 # ============================================================
 
-BASE_URL = "https://hyunjae-message.tistory.com"
+BASE_URL = "https://sunwooclips2.tistory.com"
+LIST_URL = BASE_URL + "/category/Private%20message"
 
 # 你的 Fromm JSON 裡希望固定顯示的 sender。
 # 若想沿用原網站 item.name，改成 None。
-SENDER_OVERRIDE = "현재"
+SENDER_OVERRIDE = "선우"
 
-DEFAULT_OUTPUT = "hj_bubble.json"
+DEFAULT_OUTPUT = "sw_private_message.json"
 
 REQUEST_TIMEOUT = 20
 REQUEST_INTERVAL = 0.35
 RETRY_COUNT = 3
 
-# 網站目前首頁顯示共有 112 頁，這裡設高一點，
+# 分類列表目前顯示共有 22 頁，這裡設高一點，
 # 程式若遇到沒有文章的頁面會自動停止。
 DEFAULT_MAX_PAGES = 200
 
@@ -145,6 +146,8 @@ def parse_korean_date(text: str) -> str | None:
       2023년 12월 31일
     """
     m = re.search(r"(\d{2,4})년\s*(\d{1,2})월\s*(\d{1,2})일", text)
+    if not m:
+        m = re.search(r"(?<!\d)(\d{4})[./-](\d{1,2})[./-](\d{1,2})(?!\d)", text)
     if not m:
         return None
 
@@ -273,7 +276,7 @@ def get_article_links(
     session: requests.Session,
     page: int
 ) -> list[dict[str, str]]:
-    url = f"{BASE_URL}/?page={page}"
+    url = f"{LIST_URL}?page={page}"
     html = get_text(session, url)
     soup = BeautifulSoup(html, "html.parser")
 
@@ -281,14 +284,14 @@ def get_article_links(
     seen_urls: set[str] = set()
 
     # 這是目前首頁文章卡片的 class
-    for a in soup.select("a.post-item"):
+    for a in soup.select("a.thumb_lk, a.post-item"):
         href = (a.get("href") or "").strip()
-        title_el = a.select_one(".post-item-title")
+        title_el = a.select_one(".post-item-title, .list_tt .title")
 
         if not href or not title_el:
             continue
 
-        title = title_el.get_text(" ", strip=True)
+        title = title_el.get_text(" ", strip=True).split(" ", 1)[0]
         date = parse_korean_date(title)
 
         if not date:
@@ -506,14 +509,14 @@ def convert_items(
 
             msg: dict[str, Any] = {
                 "id": "",
-                "date": date,
+                "date": item.get("date") or date,
                 "time": time_value,
                 "sender": sender,
                 "text": "",
                 "trans": ""
             }
 
-            if is_media_url(content):
+            if is_media_url(content) or content.startswith(("https://", "http://")) and any(host in content for host in ("kakaocdn.net", "daum.net", "youtube.com", "youtu.be")):
                 msg["url"] = content
             else:
                 msg["text"] = content
@@ -522,8 +525,59 @@ def convert_items(
 
     # 保留同一時間的原始順序
     indexed = list(enumerate(messages))
-    indexed.sort(key=lambda pair: (time_sort_key(pair[1].get("time", "")), pair[0]))
+    indexed.sort(key=lambda pair: (pair[1]["date"], time_sort_key(pair[1].get("time", "")), pair[0]))
     return [msg for _, msg in indexed]
+
+
+def parse_chat_data_from_article(html: str) -> list[dict[str, Any]]:
+    """解析聊天框；時間標在組尾時，往前套用到該組訊息。"""
+    soup = BeautifulSoup(html, "html.parser")
+    chats = soup.select(".tt_article_useless_p_margin .chat")
+    if not chats:
+        raise ValueError("找不到聊天框 .chat，文章可能受保護或版型已變更")
+    result = []
+    current_date = None
+    for chat in soup.select(".tt_article_useless_p_margin .datebox, .tt_article_useless_p_margin .chat"):
+        if "datebox" in (chat.get("class") or []):
+            current_date = parse_korean_date(chat.get_text(" ", strip=True))
+            if not current_date:
+                raise ValueError("內文日期無法解析")
+            continue
+        name = chat.select_one(".name")
+        pending = []
+        last_time = ""
+        for li in chat.select(".msg-wrap > li"):
+            contents = []
+            for msg in li.select(".msg"):
+                # 保留訊息內的換行，但不把版面縮排混入文字。
+                clone = BeautifulSoup(str(msg), "html.parser")
+                for br in clone.select("br"):
+                    br.replace_with("\n")
+                text = clone.get_text().strip()
+                if text:
+                    contents.append(text)
+            for media in li.select("img, video, audio, source, iframe"):
+                url = media.get("data-src") or media.get("src")
+                if url:
+                    url = urljoin(BASE_URL, url)
+                    if url not in contents:
+                        contents.append(url)
+            if contents:
+                pending.append({"date": current_date, "name": name.get_text(strip=True) if name else "선우",
+                                "time": "", "content": contents})
+            time_el = li.select_one(".time")
+            if time_el:
+                last_time = normalize_message_time(time_el.get_text(strip=True))
+                for item in pending:
+                    item["time"] = last_time
+                result.extend(pending)
+                pending = []
+        for item in pending:
+            item["time"] = last_time
+        result.extend(pending)
+    if not result:
+        raise ValueError("聊天框內沒有可解析的訊息，不記錄為已完成日期")
+    return result
 
 
 def fetch_day_messages(
@@ -532,7 +586,7 @@ def fetch_day_messages(
     date: str
 ) -> list[dict[str, Any]]:
     html = get_text(session, article_url)
-    raw_items = parse_raw_data_from_article(html)
+    raw_items = parse_chat_data_from_article(html)
     return convert_items(raw_items, date)
 
 
@@ -660,15 +714,16 @@ def run(
     print("=" * 65)
 
     session = build_session()
-    existing = load_existing(output)
+    existing = {} if force else load_existing(output)
+    refreshed_dates: set[str] = set()
 
     print(f"\n既有資料：{len(existing)} 天")
 
     print("\n開始掃描文章列表...")
     articles = collect_articles(
         session=session,
-        start_date=start_date,
-        end_date=end_date,
+        start_date=None,
+        end_date=None,
         max_pages=max_pages
     )
 
@@ -686,7 +741,7 @@ def run(
         date = article["date"]
         url = article["url"]
 
-        if not force and date in existing and existing[date]:
+        if not force and date in existing and existing[date] and date not in refreshed_dates:
             print(f"[{i}/{len(articles)}] 跳過 {date}（已有資料）")
             skipped += 1
             continue
@@ -706,7 +761,19 @@ def run(
                 failed += 1
                 continue
 
-            existing[date] = messages
+            grouped = {}
+            for msg in messages:
+                message_date = msg["date"]
+                if start_date and message_date < start_date:
+                    continue
+                if end_date and message_date > end_date:
+                    continue
+                grouped.setdefault(message_date, []).append(msg)
+            for message_date, day_messages in grouped.items():
+                if message_date not in refreshed_dates:
+                    existing[message_date] = []
+                    refreshed_dates.add(message_date)
+                existing[message_date].extend(day_messages)
 
             # 每抓完一天就立即存檔，中斷後可續抓
             save_output(output, existing)
@@ -784,8 +851,8 @@ if __name__ == "__main__":
     try:
         run(
             output=Path(args.output),
-            start_date="2023-02-17",
-            end_date="2024-12-15",
+            start_date="2021-01-31",
+            end_date="2023-02-17",
             max_pages=args.max_pages,
             force=args.force
         )
